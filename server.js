@@ -1,3 +1,4 @@
+require("dotenv").config({ path: `${process.cwd()}/.env` });
 const express = require("express");
 const { specs, swaggerUi } = require("./swagger");
 const app = express();
@@ -7,6 +8,10 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 app.get("/", (req, res) => {
   res.send("Hello, Swagger!");
+});
+
+app.use("*", (req, res) => {
+  res.status(404).send({ message: "Not Found" });
 });
 
 app.listen(PORT, () => {
