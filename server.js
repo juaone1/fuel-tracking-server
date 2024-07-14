@@ -43,6 +43,7 @@ app.use("/refresh", require("./routes/refresh"));
 
 app.use(verifyJWT);
 app.use("/users", require("./routes/users"));
+app.use("/vehicles", require("./routes/vehicles"));
 
 app.use("*", (req, res) => {
   res.status(404).send({ message: "Not Found" });
