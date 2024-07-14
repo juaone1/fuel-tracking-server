@@ -10,8 +10,8 @@ const PORT = process.env.PORT || 3500;
 // Cross Origin Resource Sharing
 const whitelist = [
   "https://www.yoursite.com",
-  "http://127.0.0.1:5500",
-  "http://localhost:3500",
+  "http://127.0.0.1:3000",
+  "http://localhost:3000",
 ];
 const corsOptions = {
   origin: (origin, callback) => {
@@ -45,6 +45,10 @@ app.use(verifyJWT);
 app.use("/users", require("./routes/users"));
 app.use("/vehicles", require("./routes/vehicles"));
 app.use("/offices", require("./routes/offices"));
+app.use(
+  "/fuel-consumption-records",
+  require("./routes/fuelConsumptionRecords")
+);
 
 app.use("*", (req, res) => {
   res.status(404).send({ message: "Not Found" });
