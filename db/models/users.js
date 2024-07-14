@@ -36,6 +36,9 @@ module.exports = sequelize.define(
       allowNull: false,
       type: Sequelize.INTEGER,
     },
+    refreshToken: {
+      type: Sequelize.STRING,
+    },
     createdAt: {
       allowNull: false,
       type: Sequelize.DATE,
