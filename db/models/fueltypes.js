@@ -1,6 +1,6 @@
 "use strict";
 const { Sequelize } = require("sequelize");
-const sequelize = require("../config/dbConnect");
+const sequelize = require("../../config/dbConnect");
 module.exports = sequelize.define("fuelTypes", {
   id: {
     allowNull: false,
