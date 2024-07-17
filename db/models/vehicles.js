@@ -40,6 +40,9 @@ module.exports = sequelize.define(
     vehicleStatus: {
       type: Sequelize.INTEGER,
     },
+    transmission: {
+      type: Sequelize.STRING,
+    },
     createdAt: {
       allowNull: false,
       type: Sequelize.DATE,

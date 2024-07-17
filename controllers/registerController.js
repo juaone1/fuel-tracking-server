@@ -25,7 +25,7 @@ const handleNewUser = async (req, res) => {
       password: hashedPassword,
       email: body.email,
       officeId: body.officeId,
-      roleId: 2,
+      roleId: body.roleId,
     });
 
     if (!newUser) {

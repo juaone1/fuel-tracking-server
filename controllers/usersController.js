@@ -6,8 +6,8 @@ const getAllUsers = async (req, res) => {
       exclude: [
         "password",
         "refreshToken",
-        "createdAt",
-        "updatedAt",
+        // "createdAt",
+        // "updatedAt",
         "deletedAt",
       ],
     },

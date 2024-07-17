@@ -32,7 +32,12 @@ const handleLogin = async (req, res) => {
   );
 
   await user.update({ refreshToken });
-  res.cookie("jwt", refreshToken, { httpOnly: true, maxAge: 86400000 });
+  res.cookie("jwt", refreshToken, {
+    httpOnly: true,
+    sameSite: "None",
+    secure: true,
+    maxAge: 86400000,
+  });
 
   return res.status(200).json({ accessToken, message: "Login successful" });
 };

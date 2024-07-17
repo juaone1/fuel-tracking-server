@@ -12,6 +12,8 @@ const whitelist = [
   "https://www.yoursite.com",
   "http://127.0.0.1:3000",
   "http://localhost:3000",
+  "http://127.0.0.1:3600",
+  "http://localhost:3600",
 ];
 const corsOptions = {
   origin: (origin, callback) => {
@@ -21,6 +23,7 @@ const corsOptions = {
       callback(new Error("Not allowed by CORS"));
     }
   },
+  credentials: true,
   optionsSuccessStatus: 200,
 };
 
