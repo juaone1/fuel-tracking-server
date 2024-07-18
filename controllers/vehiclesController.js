@@ -1,3 +1,4 @@
+const Sequelize = require("sequelize");
 const ExcelJS = require("exceljs");
 const fs = require("fs");
 const path = require("path");
@@ -20,9 +21,10 @@ const handleCreateVehicle = async (req, res) => {
     yearAcquired,
     isOwned,
     vehicleStatus,
+    transmission,
   } = req.body;
 
-  if (!officeId || !name || !plateNumber) {
+  if (!officeId || !model || !plateNumber) {
     return res
       .status(400)
       .json({ error: "Office ID, name, and plate number are required" });
@@ -46,7 +48,10 @@ const handleCreateVehicle = async (req, res) => {
       yearAcquired,
       isOwned,
       vehicleStatus,
+      transmission,
     });
+
+    console.log("newVehicle", newVehicle);
 
     if (!newVehicle) {
       return res.status(500).json({ error: "Error creating vehicle" });
@@ -67,11 +72,40 @@ const handleGetAllVehicles = async (req, res) => {
         // exclude: ["createdAt", "updatedAt", "deletedAt"],
         exclude: ["deletedAt"],
       },
+      include: [
+        {
+          model: VehicleCategory,
+          as: "category",
+          attributes: ["name"],
+        },
+        {
+          model: FuelType,
+          as: "fuelType",
+          attributes: ["type"],
+        },
+        {
+          model: VehicleStatus,
+          as: "status",
+          attributes: ["status"],
+        },
+      ],
     });
+
     if (!vehicles) {
       return res.status(404).json({ error: "Vehicles not found" });
     }
-    return res.status(200).json(vehicles);
+    // Transform the response
+    const transformedVehicles = vehicles.map((vehicle) => {
+      const vehicleJSON = vehicle.toJSON();
+      console.log("vehicleJSON", vehicleJSON);
+      return {
+        ...vehicleJSON,
+        category: vehicleJSON.category ? vehicleJSON.category.name : null,
+        fuelType: vehicleJSON.fuelType ? vehicleJSON.fuelType.type : null,
+        status: vehicleJSON.status ? vehicleJSON.status.status : null,
+      };
+    });
+    return res.status(200).json(transformedVehicles);
   } catch (error) {
     res.status(500).json({ error: "server error", message: error.message });
   }
@@ -307,7 +341,21 @@ const handleImportData = async (req, res) => {
         }
       }
     });
-    res.send({ message: "Data processed", successData, failureData });
+    // Insert successData into the database using bulkCreate
+    if (successData.length > 0) {
+      await Vehicles.bulkCreate(successData);
+      res.send({
+        message: `${successData.length} rows successfully inserted,  ${failureData.length} rows not inserted `,
+        successData,
+        failureData,
+      });
+    } else {
+      res.status(400).send({
+        message: `${successData.length} rows successfully inserted,  ${failureData.length} rows not inserted `,
+        successData,
+        failureData,
+      });
+    }
   } catch (error) {
     res.status(500).send("Error importing data");
   } finally {

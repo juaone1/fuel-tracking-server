@@ -6,7 +6,8 @@ const cors = require("cors");
 const verifyJWT = require("./middlewares/verifyJWT");
 const cookieParser = require("cookie-parser");
 const PORT = process.env.PORT || 3500;
-
+const setupModelAssociations = require("./db/models/modelAssociations");
+setupModelAssociations();
 // Cross Origin Resource Sharing
 const whitelist = [
   "https://www.yoursite.com",
