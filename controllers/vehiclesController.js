@@ -12,7 +12,6 @@ const VehicleStatus = require("../db/models/vehiclestatus");
 const handleCreateVehicle = async (req, res) => {
   const {
     officeId,
-    name,
     plateNumber,
     model,
     fuelTypeId,
@@ -39,7 +38,6 @@ const handleCreateVehicle = async (req, res) => {
   try {
     const newVehicle = await Vehicles.create({
       officeId,
-      name,
       plateNumber,
       model,
       fuelTypeId,
@@ -195,7 +193,15 @@ const handleDownloadSampleExcel = async (req, res) => {
   } catch {
     // Fetch categories from the database
     const categories = await fetchVehicleCategories();
+    const offices = await Office.findAll({ attributes: ["name"] });
+    const vehicleStatus = await VehicleStatus.findAll({
+      attributes: ["status"],
+    });
+    const fuelTypes = ["Gasoline", "Diesel"];
+    const transmission = ["Automatic", "Manual"];
     const categoryNames = categories.map((c) => c.name);
+    const officeNames = offices.map((o) => o.name);
+    const vehicleStatuses = vehicleStatus.map((v) => v.status);
 
     // Create a new workbook and add a worksheet
     const workbook = new ExcelJS.Workbook();
@@ -203,41 +209,89 @@ const handleDownloadSampleExcel = async (req, res) => {
 
     // Define columns in your template
     worksheet.columns = [
-      { header: "Office", key: "office", width: 30 },
-      { header: "Vehicle Name", key: "name", width: 30 },
-      { header: "Model", key: "model", width: 30 },
-      { header: "Plate Number", key: "plateNumber", width: 30 },
-      { header: "Fuel Type", key: "fuelType", width: 30 },
-      { header: "Transmission", key: "transmission", width: 30 },
-      { header: "Vehicle Category", key: "category", width: 30 },
-      { header: "Year Model", key: "yearModel", width: 30 },
-      { header: "Year Acquired", key: "yearAcquired", width: 30 },
-      { header: "Ownership", key: "ownership", width: 30 },
-      { header: "Vehicle Status", key: "vehicleStatus", width: 30 },
+      { header: "Office", key: "office", width: 20 },
+      { header: "Model/Brand", key: "model", width: 20 },
+      { header: "Plate Number", key: "plateNumber", width: 20 },
+      { header: "Fuel Type", key: "fuelType", width: 20 },
+      { header: "Transmission", key: "transmission", width: 20 },
+      { header: "Vehicle Category", key: "category", width: 20 },
+      { header: "Year Model", key: "yearModel", width: 20 },
+      { header: "Year Acquired", key: "yearAcquired", width: 20 },
+      { header: "Ownership", key: "ownership", width: 20 },
+      { header: "Vehicle Status", key: "vehicleStatus", width: 20 },
     ];
 
     // Add a sample row
     worksheet.addRow({
-      office: "Sample Office",
-      name: "Sample Vehicle",
+      office: offices[0],
       model: "Sample Model",
       plateNumber: "ABC123",
       fuelType: "Gasoline",
       transmission: "Automatic",
-      category: categoryNames[0], // Assuming the first category as sample
+      category: categoryNames[0],
       yearModel: "2020",
       yearAcquired: "2021",
       ownership: "Owned",
-      vehicleStatus: "Operational",
+      vehicleStatus: vehicleStatuses[0],
     });
 
     // Correctly format the formula for the dropdown list
     const categoriesList = `"${categoryNames.join(",")}"`;
+    const officesList = `"${officeNames.join(",")}"`;
+    const vehicleStatusList = `"${vehicleStatuses.join(",")}"`;
+    const fuelTypesList = `"${fuelTypes.join(",")}"`;
+    const transmissionList = `"${transmission.join(",")}"`;
+
     // Apply data validation for the 'Vehicle Category' column for all cells
-    worksheet.dataValidations.add("G2:G9999", {
+    worksheet.dataValidations.add("F2:F9999", {
       type: "list",
       allowBlank: false,
       formulae: [categoriesList],
+      showDropDown: true,
+      showErrorMessage: true,
+      errorStyle: "error",
+      errorTitle: "Invalid Entry",
+      error: "Please select a value from the list.",
+    });
+    //Apply data validation for the 'Fuel Types' column for all cells
+    worksheet.dataValidations.add("D2:D9999", {
+      type: "list",
+      allowBlank: false,
+      formulae: [fuelTypesList],
+      showDropDown: true,
+      showErrorMessage: true,
+      errorStyle: "error",
+      errorTitle: "Invalid Entry",
+      error: "Please select a value from the list.",
+    });
+
+    // Apply data validation for the 'Office' column for all cells
+    worksheet.dataValidations.add("A2:A9999", {
+      type: "list",
+      allowBlank: false,
+      formulae: [officesList],
+      showDropDown: true,
+      showErrorMessage: true,
+      errorStyle: "error",
+      errorTitle: "Invalid Entry",
+      error: "Please select a value from the list.",
+    });
+    //Apply data validation for the 'Transmission' column for all cells
+    worksheet.dataValidations.add("E2:E9999", {
+      type: "list",
+      allowBlank: false,
+      formulae: [transmissionList],
+      showDropDown: true,
+      showErrorMessage: true,
+      errorStyle: "error",
+      errorTitle: "Invalid Entry",
+      error: "Please select a value from the list.",
+    });
+    // Apply data validation for the 'Vehicle Status' column for all cells
+    worksheet.dataValidations.add("J2:J9999", {
+      type: "list",
+      allowBlank: false,
+      formulae: [vehicleStatusList],
       showDropDown: true,
       showErrorMessage: true,
       errorStyle: "error",

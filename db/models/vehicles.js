@@ -16,9 +16,6 @@ module.exports = sequelize.define(
     plateNumber: {
       type: Sequelize.STRING,
     },
-    name: {
-      type: Sequelize.STRING,
-    },
     model: {
       type: Sequelize.STRING,
     },
