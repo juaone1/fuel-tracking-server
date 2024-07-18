@@ -1,7 +1,12 @@
 const Offices = require("../db/models/offices");
 
 const handleCreateOffice = async (req, res) => {
-  const { name, abbreviation, color } = req.body;
+  let { name, abbreviation, color } = req.body;
+
+  // Sanitize and ensure inputs are strings
+  name = typeof name === "string" ? name.trim() : "";
+  abbreviation = typeof abbreviation === "string" ? abbreviation.trim() : "";
+  color = typeof color === "string" ? color.trim() : "";
 
   if (!name) {
     return res.status(400).json({ error: "Name is required" });

@@ -86,21 +86,46 @@ const handleGetAllVehicles = async (req, res) => {
           as: "status",
           attributes: ["status"],
         },
+        {
+          model: Office,
+          as: "office",
+          attributes: ["name"],
+        },
       ],
     });
 
     if (!vehicles) {
       return res.status(404).json({ error: "Vehicles not found" });
     }
+
     // Transform the response
     const transformedVehicles = vehicles.map((vehicle) => {
       const vehicleJSON = vehicle.toJSON();
       console.log("vehicleJSON", vehicleJSON);
+      // Format createdAt and updatedAt
+      const createdAt = new Date(vehicleJSON.createdAt)
+        .toLocaleString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        })
+        .replace(/(\d+)\/(\d+)\/(\d+),/, "$1/$2/$3");
+
+      const updatedAt = new Date(vehicleJSON.updatedAt)
+        .toLocaleString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        })
+        .replace(/(\d+)\/(\d+)\/(\d+),/, "$1/$2/$3");
       return {
         ...vehicleJSON,
+        createdAt,
+        updatedAt,
         category: vehicleJSON.category ? vehicleJSON.category.name : null,
         fuelType: vehicleJSON.fuelType ? vehicleJSON.fuelType.type : null,
         status: vehicleJSON.status ? vehicleJSON.status.status : null,
+        office: vehicleJSON.office ? vehicleJSON.office.name : null,
       };
     });
     return res.status(200).json(transformedVehicles);
@@ -223,7 +248,7 @@ const handleDownloadSampleExcel = async (req, res) => {
 
     // Add a sample row
     worksheet.addRow({
-      office: offices[0],
+      office: offices[0].name,
       model: "Sample Model",
       plateNumber: "ABC123",
       fuelType: "Gasoline",

@@ -2,6 +2,7 @@ const Vehicles = require("./vehicles");
 const VehicleCategory = require("./vehiclecategories");
 const FuelType = require("./fueltypes");
 const VehicleStatus = require("./vehiclestatus");
+const Office = require("./offices");
 
 const setupModelAssociations = () => {
   // Define associations
@@ -19,6 +20,9 @@ const setupModelAssociations = () => {
     as: "status",
   });
   VehicleStatus.hasMany(Vehicles, { foreignKey: "vehicleStatus" });
+
+  Vehicles.belongsTo(Office, { foreignKey: "officeId", as: "office" });
+  Office.hasMany(Vehicles, { foreignKey: "officeId" });
 };
 
 module.exports = setupModelAssociations;
