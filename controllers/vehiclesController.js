@@ -142,13 +142,69 @@ const handleGetVehiclesByOfficeId = async (req, res) => {
         officeId: officeId,
         deletedAt: null, // If you're using soft deletes, exclude deleted records
       },
+      attributes: {
+        // exclude: ["createdAt", "updatedAt", "deletedAt"],
+        exclude: ["deletedAt"],
+      },
+      include: [
+        {
+          model: VehicleCategory,
+          as: "category",
+          attributes: ["name"],
+        },
+        {
+          model: FuelType,
+          as: "fuelType",
+          attributes: ["type"],
+        },
+        {
+          model: VehicleStatus,
+          as: "status",
+          attributes: ["status"],
+        },
+        {
+          model: Office,
+          as: "office",
+          attributes: ["name"],
+        },
+      ],
     });
     if (vehicles.length === 0) {
       return res
         .status(404)
         .send({ message: "No vehicles found for this office." });
     }
-    res.send(vehicles);
+    // res.send(vehicles);
+    const transformedVehicles = vehicles.map((vehicle) => {
+      const vehicleJSON = vehicle.toJSON();
+      console.log("vehicleJSON", vehicleJSON);
+      // Format createdAt and updatedAt
+      const createdAt = new Date(vehicleJSON.createdAt)
+        .toLocaleString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        })
+        .replace(/(\d+)\/(\d+)\/(\d+),/, "$1/$2/$3");
+
+      const updatedAt = new Date(vehicleJSON.updatedAt)
+        .toLocaleString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        })
+        .replace(/(\d+)\/(\d+)\/(\d+),/, "$1/$2/$3");
+      return {
+        ...vehicleJSON,
+        createdAt,
+        updatedAt,
+        category: vehicleJSON.category ? vehicleJSON.category.name : null,
+        fuelType: vehicleJSON.fuelType ? vehicleJSON.fuelType.type : null,
+        status: vehicleJSON.status ? vehicleJSON.status.status : null,
+        office: vehicleJSON.office ? vehicleJSON.office.name : null,
+      };
+    });
+    return res.status(200).json(transformedVehicles);
   } catch (error) {
     res
       .status(500)
