@@ -2,7 +2,6 @@ const Offices = require("../db/models/offices");
 
 const handleCreateOffice = async (req, res) => {
   let { name, abbreviation, color } = req.body;
-
   // Sanitize and ensure inputs are strings
   name = typeof name === "string" ? name.trim() : "";
   abbreviation = typeof abbreviation === "string" ? abbreviation.trim() : "";
@@ -38,11 +37,17 @@ const handleCreateOffice = async (req, res) => {
 };
 
 const handleGetAllOffices = async (req, res) => {
+  const role = req.role;
+  const officeId = req.officeId;
+
+  console.log("role", role);
+  console.log("officeId", officeId);
   try {
     const offices = await Offices.findAll({
       attributes: {
         exclude: ["createdAt", "updatedAt", "deletedAt"],
       },
+      where: role && role !== 2 && officeId ? { id: officeId } : {},
     });
 
     return res.status(200).json({ data: offices });
