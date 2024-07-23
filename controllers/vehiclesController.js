@@ -64,12 +64,16 @@ const handleCreateVehicle = async (req, res) => {
 };
 
 const handleGetAllVehicles = async (req, res) => {
+  const role = req.role;
+  const officeId = req.officeId;
+
   try {
     const vehicles = await Vehicles.findAll({
       attributes: {
         // exclude: ["createdAt", "updatedAt", "deletedAt"],
         exclude: ["deletedAt"],
       },
+      where: role && role !== 2 && officeId ? { officeId } : {},
       include: [
         {
           model: VehicleCategory,
@@ -101,7 +105,7 @@ const handleGetAllVehicles = async (req, res) => {
     // Transform the response
     const transformedVehicles = vehicles.map((vehicle) => {
       const vehicleJSON = vehicle.toJSON();
-      console.log("vehicleJSON", vehicleJSON);
+      // console.log("vehicleJSON", vehicleJSON);
       // Format createdAt and updatedAt
       const createdAt = new Date(vehicleJSON.createdAt)
         .toLocaleString("en-US", {

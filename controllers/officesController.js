@@ -39,9 +39,6 @@ const handleCreateOffice = async (req, res) => {
 const handleGetAllOffices = async (req, res) => {
   const role = req.role;
   const officeId = req.officeId;
-
-  console.log("role", role);
-  console.log("officeId", officeId);
   try {
     const offices = await Offices.findAll({
       attributes: {
