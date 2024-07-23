@@ -15,7 +15,15 @@ const handleRefreshToken = async (req, res) => {
     if (err || userExists.userName !== user.userName)
       return res.sendStatus(403);
     const accessToken = jwt.sign(
-      { username: userExists.username },
+      {
+        userInfo: {
+          id: userExists.id,
+          userName: userExists.userName,
+          role: userExists.roleId,
+          officeId: userExists.officeId,
+        },
+      },
+      // { username: userExists.username },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "30s" }
     );

@@ -18,8 +18,8 @@ const handleCreateFuelConsumptionRecord = async (req, res) => {
     !officeId ||
     !year ||
     !month ||
-    !startingMileage ||
-    !endingMileage ||
+    // !startingMileage ||
+    // !endingMileage ||
     !litersConsumed ||
     !totalCost
   ) {
@@ -61,7 +61,18 @@ const handleCreateFuelConsumptionRecord = async (req, res) => {
 
 const handleGetAllFuelConsumptionRecords = async (req, res) => {
   try {
+    const { vehicleId, year } = req.query;
+
+    const whereClause = {};
+    if (vehicleId) {
+      whereClause.vehicleId = vehicleId;
+    }
+    if (year) {
+      whereClause.year = year;
+    }
+
     const records = await FuelConsumptionRecords.findAll({
+      where: whereClause,
       attributes: {
         exclude: ["createdAt", "updatedAt", "deletedAt"],
       },
@@ -95,7 +106,8 @@ const handleGetAllFuelConsumptionRecords = async (req, res) => {
 };
 
 const handleUpdateRecord = async (req, res) => {
-  const { vehicleId } = req.params;
+  // const { recordId } = req.params;
+  const { vehicleId, month } = req.query;
   const updateData = req.body;
 
   if (Object.keys(updateData).length === 0) {
@@ -105,7 +117,7 @@ const handleUpdateRecord = async (req, res) => {
   }
   try {
     const record = await FuelConsumptionRecords.findOne({
-      where: { id: vehicleId },
+      where: { vehicleId: vehicleId, month: month },
     });
 
     if (!record) {
@@ -141,4 +153,5 @@ module.exports = {
   handleCreateFuelConsumptionRecord,
   handleGetAllFuelConsumptionRecords,
   handleSoftDeleteRecord,
+  handleUpdateRecord,
 };
