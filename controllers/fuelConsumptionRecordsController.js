@@ -1,7 +1,7 @@
 const FuelConsumptionRecords = require("../db/models/fuelconsumptionrecords");
 const Vehicles = require("../db/models/vehicles");
+const Files = require("../db/models/files");
 const sequelize = require("sequelize");
-
 const handleCreateFuelConsumptionRecord = async (req, res) => {
   const {
     vehicleId,
@@ -78,6 +78,9 @@ const handleGetAllFuelConsumptionRecords = async (req, res) => {
       attributes: {
         exclude: ["createdAt", "updatedAt", "deletedAt"],
       },
+      include: [
+        { model: Files, as: "file", attributes: ["fileName", "fileUrl"] },
+      ],
     });
     if (!records || records.length === 0) {
       return res.status(404).json({ error: "No records found" });
@@ -301,6 +304,51 @@ const handleGetTotalCostDataByVehicle = async (req, res) => {
   }
 };
 
+const handleFileUpload = async (req, res) => {
+  const { vehicleId, month, year } = req.body;
+  try {
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    // Save file information to the database
+    const newFile = await Files.create({
+      fileName: file.originalname,
+      fileUrl: file.location,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const record = await FuelConsumptionRecords.findOne({
+      where: { vehicleId: vehicleId, month: month, year: year },
+    });
+
+    if (!record) {
+      record = await FuelConsumptionRecords.create({
+        vehicleId: vehicleId,
+        month: month,
+        year: year,
+        fileId: newFile.id,
+      });
+      return res.status(201).json({
+        message: "Record created successfully",
+        data: record,
+        file: file,
+      });
+    }
+
+    const updatedRecord = await record.update({ fileId: newFile.id });
+    res.status(200).json({
+      message: "Record updated successfully",
+      data: updatedRecord,
+      file: file,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   handleCreateFuelConsumptionRecord,
   handleGetAllFuelConsumptionRecords,
@@ -308,4 +356,5 @@ module.exports = {
   handleUpdateRecord,
   handleGetTotalConsumedDataByVehicle,
   handleGetTotalCostDataByVehicle,
+  handleFileUpload,
 };
