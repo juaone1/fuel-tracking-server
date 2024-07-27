@@ -1,7 +1,9 @@
 "use strict";
 const { Sequelize } = require("sequelize");
 const sequelize = require("../../config/dbConnect");
-module.exports = sequelize.define(
+const Files = require("./files");
+
+const FuelConsumptionRecords = sequelize.define(
   "fuelConsumptionRecords",
   {
     id: {
@@ -36,6 +38,10 @@ module.exports = sequelize.define(
     },
     fileId: {
       type: Sequelize.INTEGER,
+      references: {
+        model: Files,
+        key: "id",
+      },
     },
     createdAt: {
       allowNull: false,
@@ -53,3 +59,8 @@ module.exports = sequelize.define(
     paranoid: true,
   }
 );
+// Establish the association
+FuelConsumptionRecords.belongsTo(Files, { foreignKey: "fileId" });
+Files.hasOne(FuelConsumptionRecords, { foreignKey: "fileId" });
+
+module.exports = FuelConsumptionRecords;
