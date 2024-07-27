@@ -1,4 +1,6 @@
 const FuelConsumptionRecords = require("../db/models/fuelconsumptionrecords");
+const Vehicles = require("../db/models/vehicles");
+const sequelize = require("sequelize");
 
 const handleCreateFuelConsumptionRecord = async (req, res) => {
   const {
@@ -149,9 +151,161 @@ const handleSoftDeleteRecord = async (req, res) => {
   }
 };
 
+const handleGetTotalConsumedDataByVehicle = async (req, res) => {
+  const { vehicleId, year } = req.query;
+
+  if (!vehicleId || !year) {
+    return res.status(400).json({ error: "VehicleId and year are required" });
+  }
+
+  try {
+    // Assuming you have already associated FuelConsumptionRecords with vehicles
+    const vehicle = await Vehicles.findOne({
+      where: { id: vehicleId },
+      attributes: ["plateNumber"], // Only fetch the plateNumber
+    });
+
+    if (!vehicle) {
+      return res.status(404).json({ error: "Vehicle not found" });
+    }
+    const records = await FuelConsumptionRecords.findAll({
+      where: { vehicleId, year },
+      attributes: [
+        "month",
+        [sequelize.fn("SUM", sequelize.col("litersConsumed")), "totalLiters"],
+      ],
+      group: "month",
+      order: [["month", "ASC"]],
+      raw: true,
+    });
+    let totalLitersConsumed = 0;
+    const seriesData = new Array(12).fill(0);
+    // Function to convert month name to 0-indexed month number
+    const monthToIndex = (month) => {
+      const months = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
+      return months.indexOf(month);
+    };
+
+    records.forEach((record) => {
+      const monthIndex = monthToIndex(record.month); // Convert month name to 0-indexed month number
+      const liters = parseFloat(record.totalLiters);
+      if (monthIndex >= 0) {
+        // Ensure the month name was valid and found
+        seriesData[monthIndex] = liters;
+        totalLitersConsumed += liters;
+      }
+    });
+
+    const response = {
+      totalLitersConsumed,
+      series: [
+        {
+          name: vehicle.plateNumber,
+          data: seriesData,
+        },
+      ],
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error fetching fuel consumption data:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const handleGetTotalCostDataByVehicle = async (req, res) => {
+  const { vehicleId, year } = req.query;
+
+  if (!vehicleId || !year) {
+    return res.status(400).json({ error: "VehicleId and year are required" });
+  }
+
+  try {
+    // Assuming you have already associated FuelConsumptionRecords with vehicles
+    const vehicle = await Vehicles.findOne({
+      where: { id: vehicleId },
+      attributes: ["plateNumber"], // Only fetch the plateNumber
+    });
+
+    if (!vehicle) {
+      return res.status(404).json({ error: "Vehicle not found" });
+    }
+    const records = await FuelConsumptionRecords.findAll({
+      where: { vehicleId, year },
+      attributes: [
+        "month",
+        [sequelize.fn("SUM", sequelize.col("totalCost")), "totalCost"],
+      ],
+      group: "month",
+      order: [["month", "ASC"]],
+      raw: true,
+    });
+    let totalOverallCost = 0;
+    const seriesData = new Array(12).fill(0);
+    // Function to convert month name to 0-indexed month number
+    const monthToIndex = (month) => {
+      const months = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
+      return months.indexOf(month);
+    };
+
+    records.forEach((record) => {
+      const monthIndex = monthToIndex(record.month); // Convert month name to 0-indexed month number
+      const cost = parseFloat(record.totalCost);
+      if (monthIndex >= 0) {
+        // Ensure the month name was valid and found
+        seriesData[monthIndex] = cost;
+        totalOverallCost += cost;
+      }
+    });
+
+    const response = {
+      totalOverallCost,
+      series: [
+        {
+          name: vehicle.plateNumber,
+          data: seriesData,
+        },
+      ],
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error fetching fuel consumption data:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   handleCreateFuelConsumptionRecord,
   handleGetAllFuelConsumptionRecords,
   handleSoftDeleteRecord,
   handleUpdateRecord,
+  handleGetTotalConsumedDataByVehicle,
+  handleGetTotalCostDataByVehicle,
 };

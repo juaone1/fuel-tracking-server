@@ -39,7 +39,8 @@
 const express = require("express");
 const router = express.Router();
 const registerController = require("../controllers/registerController");
+const verifyRoles = require("../middlewares/verifyRoles");
 
-router.post("/", registerController.handleNewUser);
+router.post("/", verifyRoles([2]), registerController.handleNewUser);
 
 module.exports = router;

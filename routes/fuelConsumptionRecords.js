@@ -24,4 +24,14 @@ router.delete(
 
 router.put("/", fuelConsumptionRecordsController.handleUpdateRecord);
 
+router.get(
+  "/fuel-consumption-chart",
+  fuelConsumptionRecordsController.handleGetTotalConsumedDataByVehicle
+);
+
+router.get(
+  "/total-cost-chart",
+  fuelConsumptionRecordsController.handleGetTotalCostDataByVehicle
+);
+
 module.exports = router;
