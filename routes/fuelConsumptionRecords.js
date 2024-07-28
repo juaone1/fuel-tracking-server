@@ -95,4 +95,9 @@ router.get(
   fuelConsumptionRecordsController.handleGetTotalCostDataByVehicle
 );
 
+router.get(
+  "/vehicles-with-status",
+  fuelConsumptionRecordsController.handleGetVehicleListWithStatus
+);
+
 module.exports = router;

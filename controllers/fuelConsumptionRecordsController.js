@@ -1,6 +1,10 @@
 const FuelConsumptionRecords = require("../db/models/fuelConsumptionRecords");
 const Vehicles = require("../db/models/vehicles");
 const Files = require("../db/models/files");
+const Office = require("../db/models/offices");
+const FuelType = require("../db/models/fueltypes");
+const VehicleCategory = require("../db/models/vehiclecategories");
+const VehicleStatus = require("../db/models/vehiclestatus");
 const sequelize = require("sequelize");
 const handleCreateFuelConsumptionRecord = async (req, res) => {
   const {
@@ -349,6 +353,107 @@ const handleFileUpload = async (req, res) => {
   }
 };
 
+const handleGetVehicleListWithStatus = async (req, res) => {
+  // const role = req.role;
+  // const officeId = req.officeId;
+  const officeId = req.query;
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth();
+
+  try {
+    const vehicles = await Vehicles.findAll({
+      attributes: {
+        // exclude: ["createdAt", "updatedAt", "deletedAt"],
+        exclude: [
+          "deletedAt",
+          "yearModel",
+          "yearAcquired",
+          "createdAt",
+          "updatedAt",
+          "transmission",
+        ],
+      },
+      where: officeId,
+      include: [
+        {
+          model: VehicleCategory,
+          as: "category",
+          attributes: ["name"],
+        },
+        {
+          model: FuelType,
+          as: "fuelType",
+          attributes: ["type"],
+        },
+        {
+          model: VehicleStatus,
+          as: "status",
+          attributes: ["status"],
+        },
+        {
+          model: Office,
+          as: "office",
+          attributes: ["name"],
+        },
+      ],
+    });
+
+    if (!vehicles) {
+      return res.status(404).json({ error: "Vehicles not found" });
+    }
+
+    const transformedVehicles = await Promise.all(
+      vehicles.map(async (vehicle) => {
+        const vehicleJSON = vehicle.toJSON();
+
+        // Fetch fuel consumption records for the current year
+        const records = await FuelConsumptionRecords.findAll({
+          where: {
+            vehicleId: vehicle.id,
+            year: currentYear,
+          },
+          attributes: ["month"],
+        });
+
+        const monthsWithRecords = records.map((record) => record.month);
+        const submissions = monthsWithRecords.length;
+
+        const allMonths = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
+
+        const missedSubmissions = allMonths
+          .slice(0, currentMonth + 1)
+          .filter((month) => !monthsWithRecords.includes(month));
+
+        return {
+          ...vehicleJSON,
+          category: vehicleJSON.category ? vehicleJSON.category.name : null,
+          fuelType: vehicleJSON.fuelType ? vehicleJSON.fuelType.type : null,
+          status: vehicleJSON.status ? vehicleJSON.status.status : null,
+          office: vehicleJSON.office ? vehicleJSON.office.name : null,
+          submissions: `${submissions} out of 12`,
+          missedSubmissions,
+        };
+      })
+    );
+    return res.status(200).json(transformedVehicles);
+  } catch (error) {
+    res.status(500).json({ error: "server error", message: error.message });
+  }
+};
+
 module.exports = {
   handleCreateFuelConsumptionRecord,
   handleGetAllFuelConsumptionRecords,
@@ -357,4 +462,5 @@ module.exports = {
   handleGetTotalConsumedDataByVehicle,
   handleGetTotalCostDataByVehicle,
   handleFileUpload,
+  handleGetVehicleListWithStatus,
 };

@@ -144,7 +144,7 @@ const handleGetVehiclesByOfficeId = async (req, res) => {
     const vehicles = await Vehicles.findAll({
       where: {
         officeId: officeId,
-        deletedAt: null, // If you're using soft deletes, exclude deleted records
+        deletedAt: null,
       },
       attributes: {
         // exclude: ["createdAt", "updatedAt", "deletedAt"],
