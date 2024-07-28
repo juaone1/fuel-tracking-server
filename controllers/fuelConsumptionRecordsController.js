@@ -1,4 +1,4 @@
-const FuelConsumptionRecords = require("../db/models/fuelconsumptionrecords");
+const FuelConsumptionRecords = require("../db/models/fuelConsumptionRecords");
 const Vehicles = require("../db/models/vehicles");
 const Files = require("../db/models/files");
 const sequelize = require("sequelize");
