@@ -37,7 +37,7 @@ const getAllUsers = async (req, res) => {
       .replace(/(\d+)\/(\d+)\/(\d+),/, "$1/$2/$3");
     return {
       ...userJSON,
-      role: userJSON.role === 2 ? "Admin" : "User",
+      role: userJSON.roleId === 2 ? "Admin" : "User",
       office: user.office.name,
       createdAt,
       updatedAt,
