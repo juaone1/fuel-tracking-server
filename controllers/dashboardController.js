@@ -1,4 +1,4 @@
-const FuelConsumptionRecords = require("../db/models/fuelConsumptionRecords");
+const FuelConsumptionRecords = require("../db/models/fuelconsumptionrecords");
 const Vehicles = require("../db/models/vehicles");
 const sequelize = require("sequelize");
 const handleGetTotalSpentFuel = async (req, res) => {

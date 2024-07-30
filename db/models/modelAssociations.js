@@ -4,7 +4,7 @@ const FuelType = require("./fueltypes");
 const VehicleStatus = require("./vehiclestatus");
 const Office = require("./offices");
 const Users = require("./users");
-const FuelConsumptionRecords = require("./fuelConsumptionRecords");
+const FuelConsumptionRecords = require("./fuelconsumptionrecords");
 
 const setupModelAssociations = () => {
   // Define associations

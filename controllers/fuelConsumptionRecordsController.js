@@ -1,4 +1,4 @@
-const FuelConsumptionRecords = require("../db/models/fuelConsumptionRecords");
+const FuelConsumptionRecords = require("../db/models/fuelconsumptionrecords");
 const Vehicles = require("../db/models/vehicles");
 const Files = require("../db/models/files");
 const Office = require("../db/models/offices");
