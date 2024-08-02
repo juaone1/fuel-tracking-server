@@ -41,6 +41,6 @@ const router = express.Router();
 const registerController = require("../controllers/registerController");
 const verifyRoles = require("../middlewares/verifyRoles");
 
-router.post("/", verifyRoles([2]), registerController.handleNewUser);
+router.post("/", registerController.handleNewUser);
 
 module.exports = router;

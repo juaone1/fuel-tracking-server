@@ -420,16 +420,16 @@ const handleImportData = async (req, res) => {
       if (rowNumber > 1) {
         const vehicle = {
           officeId: officeMap.get(row.getCell(1).text) ?? null,
-          name: row.getCell(2).text,
-          model: row.getCell(3).text,
-          plateNumber: row.getCell(4).text,
-          fuelTypeId: fuelTypeMap.get(row.getCell(5).text) ?? null,
-          transmission: row.getCell(6).text,
-          categoryId: categoryMap.get(row.getCell(7).text) ?? null,
-          yearModel: row.getCell(8).text,
-          yearAcquired: row.getCell(9).text,
-          isOwned: row.getCell(10).text === "Owned",
-          vehicleStatus: vehicleStatusMap.get(row.getCell(11).text) ?? null,
+          // name: row.getCell(2).text,
+          model: row.getCell(2).text,
+          plateNumber: row.getCell(3).text,
+          fuelTypeId: fuelTypeMap.get(row.getCell(4).text) ?? null,
+          transmission: row.getCell(5).text,
+          categoryId: categoryMap.get(row.getCell(6).text) ?? null,
+          yearModel: row.getCell(7).text,
+          yearAcquired: row.getCell(8).text,
+          isOwned: row.getCell(9).text === "Owned",
+          vehicleStatus: vehicleStatusMap.get(row.getCell(10).text) ?? null,
         };
         const errors = [];
         // Check if the vehicle already exists
