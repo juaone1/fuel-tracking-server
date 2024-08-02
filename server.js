@@ -15,7 +15,7 @@ const whitelist = [
   "http://localhost:3000",
   "http://127.0.0.1:3600",
   "http://localhost:3600",
-  "http://54.153.218.24",
+  "https://www.fuelcheq.freedevs.pro",
 ];
 const corsOptions = {
   origin: (origin, callback) => {
@@ -37,25 +37,25 @@ app.use(express.json());
 //middleware for cookies
 app.use(cookieParser());
 
-app.use("/api/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
-app.get("/api/", (req, res) => {
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+app.get("/", (req, res) => {
   res.send("Hello, Swagger!");
 });
 // routes
-app.use("/api/register", require("./routes/register"));
-app.use("/api/login", require("./routes/auth"));
-app.use("/api/refresh", require("./routes/refresh"));
-app.use("/api/logout", require("./routes/logout"));
+app.use("/register", require("./routes/register"));
+app.use("/login", require("./routes/auth"));
+app.use("/refresh", require("./routes/refresh"));
+app.use("/logout", require("./routes/logout"));
 
 app.use(verifyJWT);
-app.use("/api/users", require("./routes/users"));
-app.use("/api/vehicles", require("./routes/vehicles"));
-app.use("/api/offices", require("./routes/offices"));
+app.use("/users", require("./routes/users"));
+app.use("/vehicles", require("./routes/vehicles"));
+app.use("/offices", require("./routes/offices"));
 app.use(
-  "/api/fuel-consumption-records",
+  "/fuel-consumption-records",
   require("./routes/fuelConsumptionRecords")
 );
-app.use("/api/dashboard", require("./routes/dashboard"));
+app.use("/dashboard", require("./routes/dashboard"));
 
 app.use("*", (req, res) => {
   res.status(404).send({ message: "Not Found" });
