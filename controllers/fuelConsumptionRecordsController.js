@@ -116,7 +116,7 @@ const handleGetAllFuelConsumptionRecords = async (req, res) => {
 
 const handleUpdateRecord = async (req, res) => {
   // const { recordId } = req.params;
-  const { vehicleId, month } = req.query;
+  const { vehicleId, month, year } = req.query;
   const updateData = req.body;
 
   if (Object.keys(updateData).length === 0) {
@@ -126,7 +126,7 @@ const handleUpdateRecord = async (req, res) => {
   }
   try {
     const record = await FuelConsumptionRecords.findOne({
-      where: { vehicleId: vehicleId, month: month },
+      where: { vehicleId: vehicleId, month: month, year: year },
     });
 
     if (!record) {
