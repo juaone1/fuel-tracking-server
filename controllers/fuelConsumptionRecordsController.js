@@ -216,6 +216,8 @@ const handleGetTotalConsumedDataByVehicle = async (req, res) => {
       }
     });
 
+    totalLitersConsumed = parseFloat(totalLitersConsumed.toFixed(2));
+
     const response = {
       totalLitersConsumed,
       series: [
@@ -290,6 +292,8 @@ const handleGetTotalCostDataByVehicle = async (req, res) => {
         totalOverallCost += cost;
       }
     });
+
+    totalOverallCost = parseFloat(totalOverallCost.toFixed(2));
 
     const response = {
       totalOverallCost,

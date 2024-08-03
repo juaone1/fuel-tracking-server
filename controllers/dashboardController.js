@@ -66,8 +66,12 @@ const handleGetTotalSpentFuel = async (req, res) => {
     const responseMonths = months.slice(0, lastMonthIndex + 1);
     const responseSeries = { data: monthData.slice(0, lastMonthIndex + 1) };
 
+    const totalSpentFuelRounded = parseFloat(
+      monthData.reduce((acc, val) => acc + val, 0).toFixed(2)
+    );
+
     return res.status(200).json({
-      totalSpentFuel: monthData.reduce((acc, val) => acc + val, 0),
+      totalSpentFuel: totalSpentFuelRounded,
       months: responseMonths,
       series: [responseSeries],
     });
@@ -146,6 +150,8 @@ const handleGetTotalLitersConsumed = async (req, res) => {
             totalLitersConsumed += liters;
           }
         });
+
+        totalLitersConsumed = parseFloat(totalLitersConsumed.toFixed(2));
 
         return {
           name: fuelType.name,
