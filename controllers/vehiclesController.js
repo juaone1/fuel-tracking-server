@@ -274,7 +274,19 @@ const handleDownloadSampleExcel = async (req, res) => {
     // Check if the file exists
     await fs.promises.access(filePath, fs.constants.F_OK);
     // If the file exists, send it
-    res.download(filePath);
+    // res.download(filePath);
+    res.download(filePath, (err) => {
+      if (err) {
+        console.error("Error downloading the file:", err);
+      } else {
+        // Delete the file after download
+        fs.unlink(filePath, (unlinkErr) => {
+          if (unlinkErr) {
+            console.error("Error deleting the file:", unlinkErr);
+          }
+        });
+      }
+    });
   } catch {
     // Fetch categories from the database
     const categories = await fetchVehicleCategories();
@@ -385,7 +397,19 @@ const handleDownloadSampleExcel = async (req, res) => {
     });
     // Save the workbook to a file
     await workbook.xlsx.writeFile(filePath);
-    res.download(filePath);
+    // res.download(filePath);
+    res.download(filePath, (err) => {
+      if (err) {
+        console.error("Error downloading the file:", err);
+      } else {
+        // Delete the file after download
+        fs.unlink(filePath, (unlinkErr) => {
+          if (unlinkErr) {
+            console.error("Error deleting the file:", unlinkErr);
+          }
+        });
+      }
+    });
   }
 };
 
