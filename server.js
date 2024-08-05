@@ -14,7 +14,7 @@ const whitelist = [
   "http://localhost:3000",
   "http://127.0.0.1:3600",
   "http://localhost:3600",
-  "https://www.fuelcheq.freedevs.pro",
+  "https://fuelcheq.freedevs.pro",
 ];
 const corsOptions = {
   origin: (origin, callback) => {
