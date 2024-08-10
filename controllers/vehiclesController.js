@@ -332,12 +332,28 @@ const handleDownloadSampleExcel = async (req, res) => {
       vehicleStatus: vehicleStatuses[0],
     });
 
+    // Create a hidden sheet for the lists
+    const hiddenSheet = workbook.addWorksheet("Lists", { state: "hidden" });
+
+    // Add the list of offices to the hidden sheet
+    officeNames.forEach((office, index) => {
+      hiddenSheet.getCell(`A${index + 1}`).value = office;
+    });
+
+    // Create a named range for the list of offices
+    workbook.definedNames.add(
+      `Lists!$A$1:$A${officeNames.length}`,
+      "OfficesList"
+    );
+
     // Correctly format the formula for the dropdown list
     const categoriesList = `"${categoryNames.join(",")}"`;
-    const officesList = `"${officeNames.join(",")}"`;
+    // const officesList = `"${officeNames.join(",")}"`;
     const vehicleStatusList = `"${vehicleStatuses.join(",")}"`;
     const fuelTypesList = `"${fuelTypes.join(",")}"`;
     const transmissionList = `"${transmission.join(",")}"`;
+
+    // console.log("officesList", officesList);
 
     // Apply data validation for the 'Vehicle Category' column for all cells
     worksheet.dataValidations.add("F2:F9999", {
@@ -363,16 +379,29 @@ const handleDownloadSampleExcel = async (req, res) => {
     });
 
     // Apply data validation for the 'Office' column for all cells
+    // worksheet.dataValidations.add("A2:A9999", {
+    //   type: "list",
+    //   allowBlank: false,
+    //   formulae: [officesList],
+    //   showDropDown: true,
+    //   showErrorMessage: true,
+    //   errorStyle: "error",
+    //   errorTitle: "Invalid Entry",
+    //   error: "Please select a value from the list.",
+    // });
+
+    // Apply data validation for the 'Office' column for all cells using the named range
     worksheet.dataValidations.add("A2:A9999", {
       type: "list",
       allowBlank: false,
-      formulae: [officesList],
+      formulae: ["OfficesList"],
       showDropDown: true,
       showErrorMessage: true,
       errorStyle: "error",
       errorTitle: "Invalid Entry",
       error: "Please select a value from the list.",
     });
+
     //Apply data validation for the 'Transmission' column for all cells
     worksheet.dataValidations.add("E2:E9999", {
       type: "list",
