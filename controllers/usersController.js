@@ -4,7 +4,7 @@ const Offices = require("../db/models/offices");
 const getAllUsers = async (req, res) => {
   const users = await Users.findAll({
     attributes: {
-      exclude: ["password", "refreshToken", "deletedAt"],
+      exclude: ["refreshToken", "deletedAt"],
     },
     include: [
       {
