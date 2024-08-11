@@ -8,6 +8,8 @@ const multerS3 = require("multer-s3");
 const fuelConsumptionRecordsController = require("../controllers/fuelConsumptionRecordsController");
 const verifyRoles = require("../middlewares/verifyRoles");
 
+const importFuelRecord = multer({ dest: "uploads/" });
+
 const ROLE_IDS = {
   User: 1,
   Admin: 2,
@@ -98,6 +100,17 @@ router.get(
 router.get(
   "/vehicles-with-status",
   fuelConsumptionRecordsController.handleGetVehicleListWithStatus
+);
+
+router.get(
+  "/download-sample",
+  fuelConsumptionRecordsController.handleDownloadSampleFormat
+);
+
+router.post(
+  "/import",
+  importFuelRecord.single("file"),
+  fuelConsumptionRecordsController.handleImportFuelRecord
 );
 
 module.exports = router;
