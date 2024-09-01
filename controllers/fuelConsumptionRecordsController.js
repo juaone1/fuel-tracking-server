@@ -420,10 +420,12 @@ const handleGetVehicleListWithStatus = async (req, res) => {
             vehicleId: vehicle.id,
             year: currentYear,
           },
-          attributes: ["month"],
+          attributes: ["month", "fileId"],
         });
-
-        const monthsWithRecords = records.map((record) => record.month);
+        // Filter records to include only those with a fileId
+        const validRecords = records.filter((record) => record.fileId);
+        // const monthsWithRecords = records.map((record) => record.month);
+        const monthsWithRecords = validRecords.map((record) => record.month);
         const submissions = monthsWithRecords.length;
 
         const allMonths = [
