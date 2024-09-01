@@ -682,26 +682,27 @@ const handleImportFuelRecord = async (req, res) => {
       const startingMileage = row.getCell(8).value;
       const endingMileage = row.getCell(9).value;
 
-      // Check if any of the required fields are null or empty
-      if (officeId && year && month && litersConsumed && totalCost) {
-        const record = {
-          officeId,
-          vehicleId,
-          year,
-          month,
-          litersConsumed,
-          totalCost,
-          startingMileage,
-          endingMileage,
-        };
+      const record = {
+        officeId,
+        vehicleId,
+        year,
+        month,
+        litersConsumed,
+        totalCost,
+        startingMileage,
+        endingMileage,
+      };
 
+      if (officeId || year || month) {
         // Check if the record already exists
-        if (await recordExists(officeId, vehicleId, year, month)) {
-          errors.push({
-            column: "All",
-            input: [officeId, vehicleId, year, month],
-            message: "Record already exists",
-          });
+        if (officeId && vehicleId && year && month) {
+          if (await recordExists(officeId, vehicleId, year, month)) {
+            errors.push({
+              column: "All",
+              input: [officeId, vehicleId, year, month],
+              message: "Record already exists",
+            });
+          }
         } else {
           // Validate each field and accumulate errors
           if (!officeId) {
