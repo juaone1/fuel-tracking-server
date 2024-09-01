@@ -148,6 +148,9 @@ const handleGetTotalLitersConsumed = async (req, res) => {
             let liters = parseFloat(record.dataValues.litersConsumed);
             liters = parseFloat(liters.toFixed(2));
             monthData[monthIndex] += liters;
+            monthData[monthIndex] = parseFloat(
+              monthData[monthIndex].toFixed(2)
+            );
             totalLitersConsumed += liters;
           }
         });
