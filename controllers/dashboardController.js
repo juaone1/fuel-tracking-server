@@ -145,7 +145,8 @@ const handleGetTotalLitersConsumed = async (req, res) => {
         totalLiters.forEach((record) => {
           const monthIndex = months.indexOf(record.dataValues.month);
           if (monthIndex !== -1) {
-            const liters = parseFloat(record.dataValues.litersConsumed);
+            let liters = parseFloat(record.dataValues.litersConsumed);
+            liters = parseFloat(liters.toFixed(2));
             monthData[monthIndex] += liters;
             totalLitersConsumed += liters;
           }
