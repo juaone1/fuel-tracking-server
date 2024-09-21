@@ -1,4 +1,4 @@
-const Sequelize = require("sequelize");
+const { Sequelize, Op } = require("sequelize");
 const ExcelJS = require("exceljs");
 const fs = require("fs");
 const path = require("path");
@@ -66,14 +66,24 @@ const handleCreateVehicle = async (req, res) => {
 const handleGetAllVehicles = async (req, res) => {
   const role = req.role;
   const officeId = req.officeId;
+  const { page = 1, limit = 10, search = "" } = req.query;
 
   try {
-    const vehicles = await Vehicles.findAll({
+    const offset = (page - 1) * limit;
+    const whereConditions = role && role !== 2 && officeId ? { officeId } : {};
+
+    if (search) {
+      whereConditions[Op.or] = [
+        { plateNumber: { [Op.iLike]: `%${search}%` } },
+        { model: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    const { count, rows: vehicles } = await Vehicles.findAndCountAll({
       attributes: {
-        // exclude: ["createdAt", "updatedAt", "deletedAt"],
         exclude: ["deletedAt"],
       },
-      where: role && role !== 2 && officeId ? { officeId } : {},
+      where: whereConditions,
       include: [
         {
           model: VehicleCategory,
@@ -96,6 +106,8 @@ const handleGetAllVehicles = async (req, res) => {
           attributes: ["name"],
         },
       ],
+      limit: parseInt(limit, 10),
+      offset: parseInt(offset, 10),
     });
 
     if (!vehicles) {
@@ -132,7 +144,13 @@ const handleGetAllVehicles = async (req, res) => {
         office: vehicleJSON.office ? vehicleJSON.office.name : null,
       };
     });
-    return res.status(200).json(transformedVehicles);
+    // return res.status(200).json(transformedVehicles);
+    return res.status(200).json({
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: parseInt(page, 10),
+      vehicles: transformedVehicles,
+    });
   } catch (error) {
     res.status(500).json({ error: "server error", message: error.message });
   }
