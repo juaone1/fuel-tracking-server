@@ -1,6 +1,7 @@
 const FuelConsumptionRecords = require("../db/models/fuelconsumptionrecords");
 const Vehicles = require("../db/models/vehicles");
 const sequelize = require("sequelize");
+
 const handleGetTotalSpentFuel = async (req, res) => {
   const { fuelType } = req.query;
   const role = req.role;
@@ -55,23 +56,39 @@ const handleGetTotalSpentFuel = async (req, res) => {
     totalSpentFuel.forEach((record) => {
       const monthIndex = months.indexOf(record.dataValues.month);
       if (monthIndex !== -1) {
-        monthData[monthIndex] += parseFloat(record.dataValues.totalSpentFuel);
+        let totalSpent = parseFloat(record.dataValues.totalSpentFuel);
+        if (!isNaN(totalSpent)) {
+          monthData[monthIndex] += totalSpent;
+        }
       }
     });
 
-    const lastMonthIndex = monthData.reduce((lastIndex, value, index) => {
-      return value !== 0 ? index : lastIndex;
-    }, 0);
+    // Round each value in monthData to 2 decimal places
+    const roundedMonthData = monthData.map((value) => {
+      const roundedValue = parseFloat(value.toFixed(2));
+      return isNaN(roundedValue) ? 0 : roundedValue;
+    });
+
+    const lastMonthIndex = roundedMonthData.reduce(
+      (lastIndex, value, index) => {
+        return value !== 0 ? index : lastIndex;
+      },
+      0
+    );
 
     const responseMonths = months.slice(0, lastMonthIndex + 1);
-    const responseSeries = { data: monthData.slice(0, lastMonthIndex + 1) };
+    const responseSeries = {
+      data: roundedMonthData.slice(0, lastMonthIndex + 1),
+    };
 
     const totalSpentFuelRounded = parseFloat(
       monthData.reduce((acc, val) => acc + val, 0).toFixed(2)
     );
-
+    const totalSpentFuelFormatted = parseFloat(
+      totalSpentFuelRounded
+    ).toLocaleString("en-US");
     return res.status(200).json({
-      totalSpentFuel: totalSpentFuelRounded,
+      totalSpentFuel: totalSpentFuelFormatted,
       months: responseMonths,
       series: [responseSeries],
     });
@@ -146,16 +163,20 @@ const handleGetTotalLitersConsumed = async (req, res) => {
           const monthIndex = months.indexOf(record.dataValues.month);
           if (monthIndex !== -1) {
             let liters = parseFloat(record.dataValues.litersConsumed);
-            liters = parseFloat(liters.toFixed(2));
-            monthData[monthIndex] += liters;
-            monthData[monthIndex] = parseFloat(
-              monthData[monthIndex].toFixed(2)
-            );
-            totalLitersConsumed += liters;
+            if (!isNaN(liters)) {
+              liters = parseFloat(liters.toFixed(2));
+              monthData[monthIndex] += liters;
+              monthData[monthIndex] = parseFloat(
+                monthData[monthIndex].toFixed(2)
+              );
+              totalLitersConsumed += liters;
+            }
           }
         });
 
-        totalLitersConsumed = parseFloat(totalLitersConsumed.toFixed(2));
+        totalLitersConsumed = parseFloat(
+          totalLitersConsumed.toFixed(2)
+        ).toLocaleString("en-US");
 
         return {
           name: fuelType.name,
