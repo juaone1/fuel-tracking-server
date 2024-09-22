@@ -65,8 +65,6 @@ const handleUpdateUser = async (req, res) => {
 };
 
 const handleChangePassword = async (req, res) => {
-  console.log("change password");
-  console.log("req id", req.id);
   const userId = req.id;
   const { oldPassword, newPassword } = req.body;
   try {
@@ -76,7 +74,7 @@ const handleChangePassword = async (req, res) => {
     }
     const validPassword = await bcrypt.compare(oldPassword, user.password);
     if (!validPassword) {
-      return res.status(401).json({ error: "Invalid password" });
+      return res.status(401).json({ error: "Invalid old password" });
     }
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await user.update({ password: hashedPassword });
