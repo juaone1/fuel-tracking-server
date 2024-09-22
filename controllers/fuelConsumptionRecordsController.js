@@ -5,11 +5,12 @@ const Office = require("../db/models/offices");
 const FuelType = require("../db/models/fueltypes");
 const VehicleCategory = require("../db/models/vehiclecategories");
 const VehicleStatus = require("../db/models/vehiclestatus");
-const sequelize = require("sequelize");
+const { sequelize, Op } = require("sequelize");
 
 const ExcelJS = require("exceljs");
 const fs = require("fs");
 const path = require("path");
+
 const handleCreateFuelConsumptionRecord = async (req, res) => {
   const {
     vehicleId,
@@ -364,12 +365,22 @@ const handleFileUpload = async (req, res) => {
 const handleGetVehicleListWithStatus = async (req, res) => {
   // const role = req.role;
   // const officeId = req.officeId;
-  const officeId = req.query;
+  const { officeId, page = 1, limit = 10, search = "" } = req.query;
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
 
   try {
-    const vehicles = await Vehicles.findAll({
+    const offset = (page - 1) * limit;
+    const whereConditions = officeId ? { officeId } : {};
+
+    if (search) {
+      whereConditions[Op.or] = [
+        { plateNumber: { [Op.iLike]: `%${search}%` } },
+        { model: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    const { count, rows: vehicles } = await Vehicles.findAndCountAll({
       attributes: {
         // exclude: ["createdAt", "updatedAt", "deletedAt"],
         exclude: [
@@ -381,7 +392,7 @@ const handleGetVehicleListWithStatus = async (req, res) => {
           "transmission",
         ],
       },
-      where: officeId,
+      where: whereConditions,
       include: [
         {
           model: VehicleCategory,
@@ -404,6 +415,8 @@ const handleGetVehicleListWithStatus = async (req, res) => {
           attributes: ["name"],
         },
       ],
+      limit: parseInt(limit, 10),
+      offset: parseInt(offset, 10),
     });
 
     if (!vehicles) {
@@ -458,7 +471,13 @@ const handleGetVehicleListWithStatus = async (req, res) => {
         };
       })
     );
-    return res.status(200).json(transformedVehicles);
+    // return res.status(200).json(transformedVehicles);
+    return res.status(200).json({
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: parseInt(page, 10),
+      vehicles: transformedVehicles,
+    });
   } catch (error) {
     res.status(500).json({ error: "server error", message: error.message });
   }
