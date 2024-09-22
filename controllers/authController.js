@@ -17,7 +17,7 @@ const handleLogin = async (req, res) => {
   }
   const validPassword = await bcrypt.compare(password, user.password);
   if (!validPassword) {
-    return res.status(401).json({ error: "Invalid password" });
+    return res.status(401).json({ error: "Invalid username or password" });
   }
 
   const accessToken = jwt.sign(
