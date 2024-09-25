@@ -5,7 +5,8 @@ const Office = require("../db/models/offices");
 const FuelType = require("../db/models/fueltypes");
 const VehicleCategory = require("../db/models/vehiclecategories");
 const VehicleStatus = require("../db/models/vehiclestatus");
-const { sequelize, Op } = require("sequelize");
+const sequelize = require("sequelize");
+const { Op } = require("sequelize");
 
 const ExcelJS = require("exceljs");
 const fs = require("fs");
