@@ -1,9 +1,8 @@
 const verifyRoles = (allowedRoles) => {
   return (req, res, next) => {
-    console.log("req.roles", req.role);
-    if (!req?.role) return res.sendStatus(401);
+    if (!req?.role) return res.status(401).send({ error: "Unauthorized" });
     const result = allowedRoles.some((role) => role === req.role);
-    if (!result) return res.sendStatus(401);
+    if (!result) return res.status(401).send({ error: "Unauthorized" });
     next();
   };
 };

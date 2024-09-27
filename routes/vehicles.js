@@ -15,11 +15,7 @@ router.post(
 );
 router.get("/", vehiclesController.handleGetAllVehicles);
 router.get("/:officeId", vehiclesController.handleGetVehiclesByOfficeId);
-router.put(
-  "/:vehicleId",
-  verifyRoles([2]),
-  vehiclesController.handleUpdateVehicle
-);
+router.put("/:vehicleId", vehiclesController.handleUpdateVehicle);
 router.delete(
   "/:vehicleId",
   verifyRoles([2]),
