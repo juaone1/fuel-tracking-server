@@ -821,6 +821,254 @@ const handleImportFuelRecord = async (req, res) => {
   }
 };
 
+const handleExportFuelRecord = async (req, res) => {
+  const { year, month } = req.query;
+  const officeId = req.officeId;
+
+  console.log("year", year, "month", "officeId", officeId);
+
+  try {
+    const office = await Office.findOne({
+      where: { id: officeId },
+      attributes: ["name"],
+    });
+
+    if (!office) {
+      return res.status(404).json({ error: "Office not found" });
+    }
+
+    const records = await FuelConsumptionRecords.findAll({
+      where: { year, month, officeId },
+      attributes: {
+        exclude: ["createdAt", "updatedAt", "deletedAt"],
+      },
+      include: [
+        {
+          model: Vehicles,
+          as: "vehicle",
+          attributes: ["model", "plateNumber", "fuelTypeId"],
+        },
+      ],
+    });
+
+    if (!records || records.length === 0) {
+      return res.status(404).json({ error: "No records found" });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Fuel_Consumption_Report");
+
+    // Set the date
+    worksheet.mergeCells("A2:I2");
+    worksheet.getCell("A2").value = `${month}, ${year}`;
+    worksheet.getCell("A2").alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+    worksheet.getCell("A2").font = { size: 12, bold: true };
+
+    // Set the office name
+    worksheet.mergeCells("A3:I3");
+    worksheet.getCell("A3").value = office.name;
+    worksheet.getCell("A3").alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+    worksheet.getCell("A3").font = { size: 14, bold: true };
+
+    // Add empty rows to shift the starting point to row 6
+    worksheet.addRow([]);
+    worksheet.addRow([]);
+    worksheet.addRow([]);
+
+    // Merge cells for the header across two rows
+    worksheet.mergeCells("A6:A7");
+    worksheet.mergeCells("B6:B7");
+    worksheet.mergeCells("C6:C7");
+    worksheet.mergeCells("D6:E6");
+    worksheet.mergeCells("F6:F7");
+    worksheet.mergeCells("G6:G7");
+    worksheet.mergeCells("H6:H7");
+    worksheet.mergeCells("I6:I7");
+
+    // Set the headers starting from row 6
+    worksheet.getCell("A6").value = "Vehicle/ Equipment";
+    worksheet.getCell("B6").value = "Plate No.";
+    worksheet.getCell("C6").value = "Type of Fuel (Diesel/ Gasoline)";
+    worksheet.getCell("D6").value = "Odometer Reading";
+    worksheet.getCell("F6").value = "Total Distance Travelled (KM)";
+    worksheet.getCell("G6").value = "Total Fuel Used (Ltrs)";
+    worksheet.getCell("H6").value = "Distance Travelled per liter (F/G)";
+    worksheet.getCell("I6").value = "Total Amount Consumed (Php)";
+
+    // Set the sub-headers for the merged cells
+    worksheet.getCell("D7").value = "Beginning";
+    worksheet.getCell("E7").value = "Ending";
+
+    // Set alignment for the headers
+    worksheet.getRow(6).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+      wrapText: true,
+    };
+    worksheet.getRow(7).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+      wrapText: true,
+    };
+
+    // Add borders to the headers
+    const headerCells = [
+      "A6",
+      "B6",
+      "C6",
+      "D6",
+      "E6",
+      "F6",
+      "G6",
+      "H6",
+      "I6",
+      "D7",
+      "E7",
+    ];
+    headerCells.forEach((cell) => {
+      worksheet.getCell(cell).border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    });
+
+    // Define the columns for the data rows
+    worksheet.columns = [
+      { header: "Vehicle/ Equipment", key: "vehicleId", width: 20 },
+      { header: "Plate No.", key: "plateNumber", width: 20 },
+      { header: "Type of Fuel (Diesel/ Gasoline)", key: "fuelType", width: 20 },
+      { header: "Beginning", key: "startingMileage", width: 20 },
+      { header: "Ending", key: "endingMileage", width: 20 },
+      {
+        header: "Total Distance Travelled (KM)",
+        key: "totalDistanceTravelled",
+        width: 20,
+      },
+      { header: "Total Fuel Used (Ltrs)", key: "litersConsumed", width: 20 },
+      {
+        header: "Distance Travelled per liter (F/G)",
+        key: "distancePerLiter",
+        width: 20,
+      },
+      {
+        header: "Total Amount Consumed (Php)",
+        key: "totalCost",
+        width: 20,
+      },
+    ];
+
+    worksheet.getCell("A8").value = "(A)";
+    worksheet.getCell("B8").value = "(B)";
+    worksheet.getCell("C8").value = "(C)";
+    worksheet.getCell("D8").value = "(D)";
+    worksheet.getCell("E8").value = "(E)";
+    worksheet.getCell("F8").value = "(F)";
+    worksheet.getCell("G8").value = "(G)";
+    worksheet.getCell("H8").value = "(H)";
+    worksheet.getCell("I8").value = "(I)";
+
+    // Add borders to the cells in row 8
+    const row8Cells = ["A8", "B8", "C8", "D8", "E8", "F8", "G8", "H8", "I8"];
+    row8Cells.forEach((cell) => {
+      worksheet.getCell(cell).border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    });
+
+    worksheet.getRow(8).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+
+    records.forEach((record) => {
+      console.log("record", record);
+      const totalDistanceTravelled =
+        record.endingMileage - record.startingMileage;
+      const distancePerLiter = totalDistanceTravelled / record.litersConsumed;
+
+      const row = worksheet.addRow({
+        vehicleId: record.vehicle.model,
+        plateNumber: record.vehicle.plateNumber,
+        fuelType: record.vehicle.fuelTypeId === 1 ? "Gasoline" : "Diesel",
+        startingMileage: Number(record.startingMileage)?.toFixed(2),
+        endingMileage: Number(record.endingMileage)?.toFixed(2),
+        totalDistanceTravelled: Number(totalDistanceTravelled)?.toFixed(2),
+        litersConsumed: Number(record.litersConsumed)?.toFixed(2),
+        distancePerLiter: Number(distancePerLiter)?.toFixed(2),
+        totalCost: Number(record.totalCost)?.toFixed(2),
+      });
+
+      // Ensure numbers are right-aligned
+      const numberColumns = ["D", "E", "F", "G", "H", "I"];
+      numberColumns.forEach((col) => {
+        row.getCell(col).alignment = { horizontal: "right" };
+      });
+
+      // Add borders to the data rows
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+      });
+    });
+
+    // Add Prepared by
+    worksheet.getCell(`A${records.length + 12}`).value = "Prepared by:";
+    worksheet.mergeCells(`B${records.length + 14}:C${records.length + 14}`);
+    worksheet.getCell(`B${records.length + 14}`).value = "____________________";
+    worksheet.getCell(`B${records.length + 14}`).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+    /// Add Noted by
+    worksheet.getCell(`F${records.length + 12}`).value = "Noted by:";
+    worksheet.mergeCells(`G${records.length + 14}:H${records.length + 14}`);
+    worksheet.getCell(`G${records.length + 14}`).value = "____________________";
+    worksheet.getCell(`G${records.length + 14}`).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+
+    worksheet.mergeCells("A1:I1");
+    worksheet.getCell("A1").value = "FUEL CONSUMPTION REPORT";
+    worksheet.getCell("A1").alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+    worksheet.getCell("A1").font = { size: 18, bold: true };
+
+    const filePath = path.join(__dirname, "FuelConsumptionReport.xlsx");
+    await workbook.xlsx.writeFile(filePath);
+    res.download(filePath, (err) => {
+      if (err) {
+        console.error("Error downloading the file:", err);
+      } else {
+        fs.unlink(filePath, (unlinkErr) => {
+          if (unlinkErr) {
+            console.error("Error deleting the file:", unlinkErr);
+          }
+        });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: "server error", message: error.message });
+  }
+};
+
 module.exports = {
   handleCreateFuelConsumptionRecord,
   handleGetAllFuelConsumptionRecords,
@@ -832,4 +1080,5 @@ module.exports = {
   handleGetVehicleListWithStatus,
   handleDownloadSampleFormat,
   handleImportFuelRecord,
+  handleExportFuelRecord,
 };

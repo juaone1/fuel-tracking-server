@@ -113,4 +113,5 @@ router.post(
   fuelConsumptionRecordsController.handleImportFuelRecord
 );
 
+router.get("/export", fuelConsumptionRecordsController.handleExportFuelRecord);
 module.exports = router;
