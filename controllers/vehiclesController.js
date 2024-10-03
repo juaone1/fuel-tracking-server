@@ -286,6 +286,8 @@ const fetchVehicleCategories = async () => {
 };
 
 const handleDownloadSampleExcel = async (req, res) => {
+  const role = req.role;
+  const officeId = req.officeId;
   const filePath = path.join(__dirname, "VehicleTemplate.xlsx");
 
   try {
@@ -308,14 +310,25 @@ const handleDownloadSampleExcel = async (req, res) => {
   } catch {
     // Fetch categories from the database
     const categories = await fetchVehicleCategories();
-    const offices = await Office.findAll({ attributes: ["name"] });
+    // const offices = await Office.findAll({ attributes: ["name"] });
+    const offices =
+      role !== 2
+        ? await Office.findOne({ where: { id: officeId } })
+        : await Office.findAll({ attributes: ["name"] });
+    let officeNames;
+    if (Array.isArray(offices)) {
+      officeNames = offices.map((o) => o.name);
+    } else {
+      officeNames = [offices.name];
+    }
+
     const vehicleStatus = await VehicleStatus.findAll({
       attributes: ["status"],
     });
     const fuelTypes = ["Gasoline", "Diesel"];
     const transmission = ["Automatic", "Manual"];
     const categoryNames = categories.map((c) => c.name);
-    const officeNames = offices.map((o) => o.name);
+    // const officeNames = offices.map((o) => o.name);
     const vehicleStatuses = vehicleStatus.map((v) => v.status);
 
     // Create a new workbook and add a worksheet
@@ -338,7 +351,8 @@ const handleDownloadSampleExcel = async (req, res) => {
 
     // Add a sample row
     worksheet.addRow({
-      office: offices[0].name,
+      // office: offices[0].name,
+      office: officeNames[0],
       model: "Sample Model",
       plateNumber: "ABC123",
       fuelType: "Gasoline",
