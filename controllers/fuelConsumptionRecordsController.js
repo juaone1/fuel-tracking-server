@@ -1026,6 +1026,42 @@ const handleExportFuelRecord = async (req, res) => {
       });
     });
 
+    // Add Total
+    const totalLitersConsumed = records.reduce(
+      (acc, record) => acc + Number(record.litersConsumed),
+      0
+    );
+    const totalCost = records.reduce(
+      (acc, record) => acc + Number(record.totalCost),
+      0
+    );
+    worksheet.getCell(`A${records.length + 9}`).value = "Total";
+    worksheet.getCell(`A${records.length + 9}`).font = { bold: true };
+    worksheet.getCell(`G${records.length + 9}`).value = totalLitersConsumed;
+    worksheet.getCell(`G${records.length + 9}`).font = { bold: true };
+    worksheet.getCell(`I${records.length + 9}`).value = totalCost;
+    worksheet.getCell(`I${records.length + 9}`).font = { bold: true };
+    const rowTotalCells = [
+      `A${records.length + 9}`,
+      `B${records.length + 9}`,
+      `C${records.length + 9}`,
+      `D${records.length + 9}`,
+      `E${records.length + 9}`,
+      `F${records.length + 9}`,
+      `G${records.length + 9}`,
+      `H${records.length + 9}`,
+      `I${records.length + 9}`,
+    ];
+
+    rowTotalCells.forEach((cell) => {
+      worksheet.getCell(cell).border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    });
+
     // Add Prepared by
     worksheet.getCell(`A${records.length + 12}`).value = "Prepared by:";
     worksheet.mergeCells(`B${records.length + 14}:C${records.length + 14}`);
