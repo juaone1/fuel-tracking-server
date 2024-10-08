@@ -7,7 +7,7 @@ const multer = require("multer");
 const multerS3 = require("multer-s3");
 const fuelConsumptionRecordsController = require("../controllers/fuelConsumptionRecordsController");
 const verifyRoles = require("../middlewares/verifyRoles");
-
+const errorHandler = require("../middlewares/errorHandler");
 const importFuelRecord = multer({ dest: "uploads/" });
 
 const ROLE_IDS = {
@@ -114,4 +114,7 @@ router.post(
 );
 
 router.get("/export", fuelConsumptionRecordsController.handleExportFuelRecord);
+
+router.use(errorHandler);
+
 module.exports = router;
