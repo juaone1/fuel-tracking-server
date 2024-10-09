@@ -45,7 +45,7 @@ const upload = multer({
       cb(new Error("Only .png, .jpg, .jpeg, and .pdf files are allowed!"));
     }
   },
-  limits: { fileSize: 1024 * 1024 * 10 }, // Limit file size to 2MB
+  limits: { fileSize: 1024 * 1024 * 2 }, // Limit file size to 2MB
 });
 
 router.post(

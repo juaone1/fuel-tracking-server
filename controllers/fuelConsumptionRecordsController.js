@@ -319,7 +319,6 @@ const handleGetTotalCostDataByVehicle = async (req, res) => {
 };
 
 const handleFileUpload = async (req, res) => {
-  console.log("file upload");
   const { vehicleId, month, year } = req.body;
   try {
     const file = req.file;
@@ -359,7 +358,6 @@ const handleFileUpload = async (req, res) => {
       data: updatedRecord,
       file: file,
     });
-    console.log("last");
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
