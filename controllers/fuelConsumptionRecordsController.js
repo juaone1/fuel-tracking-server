@@ -334,7 +334,7 @@ const handleFileUpload = async (req, res) => {
       updatedAt: new Date(),
     });
 
-    const record = await FuelConsumptionRecords.findOne({
+    let record = await FuelConsumptionRecords.findOne({
       where: { vehicleId: vehicleId, month: month, year: year },
     });
 
