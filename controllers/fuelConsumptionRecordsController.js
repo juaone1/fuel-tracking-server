@@ -901,17 +901,27 @@ const handleExportFuelRecord = async (req, res) => {
 
     // Set the headers starting from row 6
     worksheet.getCell("A6").value = "Vehicle/ Equipment";
+    worksheet.getCell("A6").font = { bold: true };
     worksheet.getCell("B6").value = "Plate No./ Property No.";
+    worksheet.getCell("B6").font = { bold: true };
     worksheet.getCell("C6").value = "Type of Fuel (Diesel/ Gasoline)";
+    worksheet.getCell("C6").font = { bold: true };
     worksheet.getCell("D6").value = "Odometer Reading";
+    worksheet.getCell("D6").font = { bold: true };
     worksheet.getCell("F6").value = "Total Distance Travelled (KM)";
+    worksheet.getCell("F6").font = { bold: true };
     worksheet.getCell("G6").value = "Total Fuel Used (Ltrs)";
+    worksheet.getCell("G6").font = { bold: true };
     worksheet.getCell("H6").value = "Distance Travelled per liter (F/G)";
+    worksheet.getCell("H6").font = { bold: true };
     worksheet.getCell("I6").value = "Total Amount Consumed (Php)";
+    worksheet.getCell("I6").font = { bold: true };
 
     // Set the sub-headers for the merged cells
     worksheet.getCell("D7").value = "Beginning";
+    worksheet.getCell("D7").font = { bold: true };
     worksheet.getCell("E7").value = "Ending";
+    worksheet.getCell("E7").font = { bold: true };
 
     // Set alignment for the headers
     worksheet.getRow(6).alignment = {
