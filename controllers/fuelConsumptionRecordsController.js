@@ -901,7 +901,7 @@ const handleExportFuelRecord = async (req, res) => {
 
     // Set the headers starting from row 6
     worksheet.getCell("A6").value = "Vehicle/ Equipment";
-    worksheet.getCell("B6").value = "Plate No.";
+    worksheet.getCell("B6").value = "Plate No./ Property No.";
     worksheet.getCell("C6").value = "Type of Fuel (Diesel/ Gasoline)";
     worksheet.getCell("D6").value = "Odometer Reading";
     worksheet.getCell("F6").value = "Total Distance Travelled (KM)";
@@ -951,7 +951,7 @@ const handleExportFuelRecord = async (req, res) => {
     // Define the columns for the data rows
     worksheet.columns = [
       { header: "Vehicle/ Equipment", key: "vehicleId", width: 20 },
-      { header: "Plate No.", key: "plateNumber", width: 20 },
+      { header: "Plate No./ Property No.", key: "plateNumber", width: 20 },
       { header: "Type of Fuel (Diesel/ Gasoline)", key: "fuelType", width: 20 },
       { header: "Beginning", key: "startingMileage", width: 20 },
       { header: "Ending", key: "endingMileage", width: 20 },
@@ -1009,12 +1009,33 @@ const handleExportFuelRecord = async (req, res) => {
         vehicleId: record.vehicle.model,
         plateNumber: record.vehicle.plateNumber,
         fuelType: record.vehicle.fuelTypeId === 1 ? "Gasoline" : "Diesel",
-        startingMileage: Number(record.startingMileage)?.toFixed(2),
-        endingMileage: Number(record.endingMileage)?.toFixed(2),
-        totalDistanceTravelled: Number(totalDistanceTravelled)?.toFixed(2),
-        litersConsumed: Number(record.litersConsumed)?.toFixed(2),
-        distancePerLiter: Number(distancePerLiter)?.toFixed(2),
-        totalCost: Number(record.totalCost)?.toFixed(2),
+        vehicleId: record.vehicle.model,
+        plateNumber: record.vehicle.plateNumber,
+        fuelType: record.vehicle.fuelTypeId === 1 ? "Gasoline" : "Diesel",
+        startingMileage: Number(record.startingMileage).toLocaleString(
+          "en-US",
+          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        ),
+        endingMileage: Number(record.endingMileage).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+        totalDistanceTravelled: Number(totalDistanceTravelled).toLocaleString(
+          "en-US",
+          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        ),
+        litersConsumed: Number(record.litersConsumed).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+        distancePerLiter: Number(distancePerLiter).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+        totalCost: Number(record.totalCost).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
       });
 
       // Ensure numbers are right-aligned
@@ -1043,12 +1064,29 @@ const handleExportFuelRecord = async (req, res) => {
       (acc, record) => acc + Number(record.totalCost),
       0
     );
+    // Format the totals with commas and two decimal places
+    const formattedTotalLitersConsumed = totalLitersConsumed.toLocaleString(
+      "en-US",
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+    );
+    const formattedTotalCost = totalCost.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
     worksheet.getCell(`A${records.length + 9}`).value = "Total";
     worksheet.getCell(`A${records.length + 9}`).font = { bold: true };
-    worksheet.getCell(`G${records.length + 9}`).value = totalLitersConsumed;
+    worksheet.getCell(`G${records.length + 9}`).value =
+      formattedTotalLitersConsumed;
+    worksheet.getCell(`G${records.length + 9}`).alignment = {
+      horizontal: "right",
+    };
     worksheet.getCell(`G${records.length + 9}`).font = { bold: true };
-    worksheet.getCell(`I${records.length + 9}`).value = totalCost;
+    worksheet.getCell(`I${records.length + 9}`).value = formattedTotalCost;
     worksheet.getCell(`I${records.length + 9}`).font = { bold: true };
+    worksheet.getCell(`I${records.length + 9}`).alignment = {
+      horizontal: "right",
+    };
     const rowTotalCells = [
       `A${records.length + 9}`,
       `B${records.length + 9}`,
@@ -1073,42 +1111,66 @@ const handleExportFuelRecord = async (req, res) => {
     // Add Prepared by
     worksheet.getCell(`A${records.length + 12}`).value = "Prepared by:";
     worksheet.mergeCells(`B${records.length + 14}:C${records.length + 14}`);
-    worksheet.getCell(`B${records.length + 14}`).value = "____________________";
+    worksheet.mergeCells(`B${records.length + 15}:C${records.length + 15}`);
+    worksheet.getCell(`B${records.length + 14}`).value = "NAME";
     worksheet.getCell(`B${records.length + 14}`).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+    worksheet.getCell(`B${records.length + 15}`).value = "Designation";
+    worksheet.getCell(`B${records.length + 15}`).alignment = {
       vertical: "middle",
       horizontal: "center",
     };
     /// Add Noted by
     worksheet.getCell(`F${records.length + 12}`).value = "Noted by:";
     worksheet.mergeCells(`G${records.length + 14}:H${records.length + 14}`);
-    worksheet.getCell(`G${records.length + 14}`).value = "____________________";
+    worksheet.mergeCells(`G${records.length + 15}:H${records.length + 15}`);
+    worksheet.getCell(`G${records.length + 14}`).value = "NAME";
     worksheet.getCell(`G${records.length + 14}`).alignment = {
       vertical: "middle",
       horizontal: "center",
     };
+    worksheet.getCell(`G${records.length + 15}`).value = "Designation";
+    worksheet.getCell(`G${records.length + 15}`).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+
+    // Unlock all cells first
+    worksheet.eachRow((row) => {
+      row.eachCell((cell) => {
+        cell.protection = { locked: false };
+      });
+    });
     // Add Generated by
-    worksheet.getCell(`A${records.length + 16}`).value =
+    const generatedByCell = `A${records.length + 20}`;
+    worksheet.getCell(generatedByCell).value =
       "*This report was generated using the CPDO Online Fuel Reporting System.";
-    worksheet.getCell(`A${records.length + 16}`).font = { italic: true };
-    worksheet.mergeCells(`A${records.length + 16}:I${records.length + 16}`);
+    worksheet.getCell(generatedByCell).font = { italic: true };
+    worksheet.mergeCells(`${generatedByCell}:I${records.length + 20}`);
+    worksheet.getCell(generatedByCell).protection = { locked: true };
 
     // Add Date Generated
     const date = new Date();
-    const dateString = date.toLocaleDateString("en-US", {
+    const dateString = new Intl.DateTimeFormat("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
-    });
-    const timeString = date.toLocaleTimeString("en-US", {
+      timeZone: "Asia/Manila", // Set to Manila time
+    }).format(date);
+    const timeString = new Intl.DateTimeFormat("en-US", {
       hour: "2-digit",
       minute: "2-digit",
-    });
-
+      timeZone: "Asia/Manila", // Set to Manila time
+    }).format(date);
+    const dateGeneratedCell = `A${records.length + 21}`;
     worksheet.getCell(
-      `A${records.length + 17}`
+      dateGeneratedCell
     ).value = `*Date Generated: ${dateString} ${timeString}`;
-    worksheet.getCell(`A${records.length + 17}`).font = { italic: true };
-    worksheet.mergeCells(`A${records.length + 17}:I${records.length + 17}`);
+    worksheet.getCell(dateGeneratedCell).font = { italic: true };
+    worksheet.mergeCells(`${dateGeneratedCell}:I${records.length + 21}`);
+    worksheet.getCell(dateGeneratedCell).protection = { locked: true };
 
     worksheet.mergeCells("A1:I1");
     worksheet.getCell("A1").value = "FUEL CONSUMPTION REPORT";
@@ -1117,6 +1179,25 @@ const handleExportFuelRecord = async (req, res) => {
       horizontal: "center",
     };
     worksheet.getCell("A1").font = { size: 18, bold: true };
+
+    // Protect the worksheet
+    worksheet.protect("!fu3lch3q", {
+      selectLockedCells: true,
+      selectUnlockedCells: true,
+      formatCells: false,
+      formatColumns: false,
+      formatRows: false,
+      insertColumns: false,
+      insertRows: false,
+      insertHyperlinks: false,
+      deleteColumns: false,
+      deleteRows: false,
+      sort: false,
+      autoFilter: false,
+      pivotTables: false,
+      objects: false,
+      scenarios: false,
+    });
 
     const filePath = path.join(__dirname, "FuelConsumptionReport.xlsx");
     await workbook.xlsx.writeFile(filePath);
