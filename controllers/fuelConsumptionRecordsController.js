@@ -1184,7 +1184,7 @@ const handleExportFuelRecord = async (req, res) => {
     worksheet.protect("!fu3lch3q", {
       selectLockedCells: true,
       selectUnlockedCells: true,
-      formatCells: false,
+      formatCells: true,
       formatColumns: false,
       formatRows: false,
       insertColumns: false,
