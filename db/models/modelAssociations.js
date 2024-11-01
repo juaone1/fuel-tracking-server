@@ -5,6 +5,7 @@ const VehicleStatus = require("./vehiclestatus");
 const Office = require("./offices");
 const Users = require("./users");
 const FuelConsumptionRecords = require("./fuelconsumptionrecords");
+const SubsidyRecords = require("./subsidyRecords");
 
 const setupModelAssociations = () => {
   // Define associations
@@ -31,6 +32,21 @@ const setupModelAssociations = () => {
     as: "vehicle",
   });
   Vehicles.hasMany(FuelConsumptionRecords, { foreignKey: "vehicleId" });
+
+  SubsidyRecords.belongsTo(Vehicles, {
+    foreignKey: "vehicleId",
+    as: "vehicle",
+  });
+  Vehicles.hasMany(SubsidyRecords, { foreignKey: "vehicleId" });
+
+  SubsidyRecords.belongsTo(Office, { foreignKey: "officeId", as: "office" });
+  Office.hasMany(SubsidyRecords, { foreignKey: "officeId" });
+
+  SubsidyRecords.belongsTo(Office, {
+    foreignKey: "requestingOfficeId",
+    as: "requestingOffice",
+  });
+  Office.hasMany(SubsidyRecords, { foreignKey: "requestingOfficeId" });
 
   Users.belongsTo(Office, { foreignKey: "officeId", as: "office" });
   Office.hasMany(Users, { foreignKey: "officeId" });
