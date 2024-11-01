@@ -125,6 +125,18 @@ router.get(
   "/subsidy-record",
   fuelConsumptionRecordsController.handleGetAllSubsidyRecords
 );
+
+router.put(
+  "/subsidy-record",
+  upload.single("file"),
+  fuelConsumptionRecordsController.handleUpdateSubsidyRecord
+);
+
+router.delete(
+  "/subsidy-record/:recordId",
+  fuelConsumptionRecordsController.handleSoftDeleteSubsidyRecord
+);
+
 router.use(errorHandler);
 
 module.exports = router;
