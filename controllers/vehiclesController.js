@@ -588,6 +588,33 @@ const handleImportData = async (req, res) => {
   }
 };
 
+const handleGetVehicleOptions = async (req, res) => {
+  console.log("handleGetVehicleOptions");
+  try {
+    const officeId = parseInt(req.query.officeId, 10);
+    console.log("officeId", officeId);
+    const vehicles = await Vehicles.findAll({
+      where: { officeId },
+      attributes: ["id", "plateNumber"],
+    });
+
+    if (vehicles.length === 0) {
+      return res
+        .status(404)
+        .send({ message: "No vehicles found for this office." });
+    }
+
+    const transformedVehicles = vehicles.map((vehicle) => ({
+      id: vehicle.id,
+      label: vehicle.plateNumber,
+    }));
+
+    res.status(200).json({ data: transformedVehicles });
+  } catch (error) {
+    res.status(500).json({ error: "server error", message: error.message });
+  }
+};
+
 module.exports = {
   handleCreateVehicle,
   handleGetAllVehicles,
@@ -596,4 +623,5 @@ module.exports = {
   handleSoftDeleteVehicle,
   handleDownloadSampleExcel,
   handleImportData,
+  handleGetVehicleOptions,
 };

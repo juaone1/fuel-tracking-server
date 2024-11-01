@@ -14,6 +14,7 @@ router.post(
   vehiclesController.handleImportData
 );
 router.get("/", vehiclesController.handleGetAllVehicles);
+router.get("/options", vehiclesController.handleGetVehicleOptions);
 router.get("/:officeId", vehiclesController.handleGetVehiclesByOfficeId);
 router.put("/:vehicleId", vehiclesController.handleUpdateVehicle);
 router.delete(
