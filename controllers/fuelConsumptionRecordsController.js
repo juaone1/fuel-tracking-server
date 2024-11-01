@@ -1,4 +1,5 @@
 const FuelConsumptionRecords = require("../db/models/fuelconsumptionrecords");
+const SubsidyRecords = require("../db/models/subsidyRecords");
 const Vehicles = require("../db/models/vehicles");
 const Files = require("../db/models/files");
 const Office = require("../db/models/offices");
@@ -1227,6 +1228,148 @@ const handleExportFuelRecord = async (req, res) => {
   }
 };
 
+const handleCreateSubsidyRecord = async (req, res) => {
+  const {
+    vehicleId,
+    officeId,
+    requestingOfficeId,
+    year,
+    month,
+    startingMileage,
+    endingMileage,
+    litersConsumed,
+    totalCost,
+    // fileId,
+  } = req.body;
+  console.log(req.body);
+  if (
+    !vehicleId ||
+    !officeId ||
+    !requestingOfficeId ||
+    !year ||
+    !month ||
+    !litersConsumed ||
+    !totalCost
+  ) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  // check if the record already exists
+  const recordExists = await SubsidyRecords.findOne({
+    where: { vehicleId, year, month },
+  });
+  if (recordExists) {
+    return res.status(400).json({ error: "Record already exists" });
+  }
+
+  try {
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const newFile = await Files.create({
+      fileName: file.originalname,
+      fileUrl: file.location,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const newRecord = await SubsidyRecords.create({
+      vehicleId,
+      officeId,
+      requestingOfficeId,
+      year,
+      month,
+      startingMileage,
+      endingMileage,
+      litersConsumed,
+      totalCost,
+      fileId: newFile.id,
+    });
+
+    if (!newRecord) {
+      return res.status(500).json({ error: "Error creating record" });
+    }
+
+    return res
+      .status(201)
+      .json({ message: "Record created successfully", data: newRecord });
+  } catch (error) {
+    res.status(500).json({ error: "server error", message: error.message });
+  }
+};
+
+const handleGetAllSubsidyRecords = async (req, res) => {
+  try {
+    const { officeId, year, page = 1, limit = 10, search = "" } = req.query;
+
+    const whereClause = {};
+    if (officeId) {
+      whereClause.officeId = officeId;
+    }
+    if (year) {
+      whereClause.year = year;
+    }
+    if (search) {
+      whereClause[Op.or] = [
+        { "$vehicle.plateNumber$": { [Op.iLike]: `%${search}%` } },
+        { "$office.name$": { [Op.iLike]: `%${search}%` } },
+        { "$requestingOffice.name$": { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+    const offset = (page - 1) * limit;
+
+    const { count, rows: records } = await SubsidyRecords.findAndCountAll({
+      where: whereClause,
+      attributes: {
+        exclude: ["createdAt", "updatedAt", "deletedAt"],
+      },
+      include: [
+        { model: Files, as: "file", attributes: ["fileName", "fileUrl"] },
+        { model: Vehicles, as: "vehicle", attributes: ["plateNumber"] },
+        { model: Office, as: "office", attributes: ["name"] },
+        { model: Office, as: "requestingOffice", attributes: ["name"] },
+      ],
+      limit,
+      offset,
+    });
+    if (!records || records.length === 0) {
+      return res.status(404).json({ error: "No records found" });
+    }
+
+    const recordsWithComputations = records.map((record) => {
+      const costPerLiter = +(record.totalCost / record.litersConsumed).toFixed(
+        2
+      );
+      const distanceTravelled = +(
+        record.endingMileage - record.startingMileage
+      ).toFixed(2);
+      const fuelEfficiency = +(
+        distanceTravelled / record.litersConsumed
+      ).toFixed(2);
+      return {
+        ...record.dataValues,
+        plateNumber: record.vehicle.plateNumber,
+        office: record.office.name,
+        requestingOffice: record.requestingOffice.name,
+        costPerLiter,
+        distanceTravelled,
+        fuelEfficiency,
+      };
+    });
+
+    return res.status(200).json({
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: parseInt(page, 10),
+      data: recordsWithComputations,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "server error", message: error.message });
+  }
+};
+
 module.exports = {
   handleCreateFuelConsumptionRecord,
   handleGetAllFuelConsumptionRecords,
@@ -1239,4 +1382,6 @@ module.exports = {
   handleDownloadSampleFormat,
   handleImportFuelRecord,
   handleExportFuelRecord,
+  handleCreateSubsidyRecord,
+  handleGetAllSubsidyRecords,
 };
