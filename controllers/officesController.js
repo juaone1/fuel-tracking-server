@@ -97,9 +97,27 @@ const handleSoftDeleteOffice = async (req, res) => {
   }
 };
 
+const handleGetOfficeOptions = async (req, res) => {
+  try {
+    const offices = await Offices.findAll({
+      attributes: ["id", "name"],
+    });
+
+    const transformedOffices = offices.map((office) => ({
+      id: office.id,
+      label: office.name,
+    }));
+
+    return res.status(200).json({ data: transformedOffices });
+  } catch (error) {
+    res.status(500).json({ error: "server error", message: error.message });
+  }
+};
+
 module.exports = {
   handleCreateOffice,
   handleGetAllOffices,
   handleUpdateOffice,
   handleSoftDeleteOffice,
+  handleGetOfficeOptions,
 };

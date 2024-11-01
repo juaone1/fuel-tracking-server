@@ -16,5 +16,6 @@ router.delete(
   verifyRoles([2]),
   officesController.handleSoftDeleteOffice
 );
+router.get("/options", officesController.handleGetOfficeOptions);
 
 module.exports = router;
