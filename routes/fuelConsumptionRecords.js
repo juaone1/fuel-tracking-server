@@ -115,6 +115,16 @@ router.post(
 
 router.get("/export", fuelConsumptionRecordsController.handleExportFuelRecord);
 
+router.post(
+  "/subsidy-record",
+  upload.single("file"),
+  fuelConsumptionRecordsController.handleCreateSubsidyRecord
+);
+
+router.get(
+  "/subsidy-record",
+  fuelConsumptionRecordsController.handleGetAllSubsidyRecords
+);
 router.use(errorHandler);
 
 module.exports = router;
