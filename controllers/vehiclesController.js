@@ -74,6 +74,7 @@ const handleGetAllVehicles = async (req, res) => {
 
     if (search) {
       whereConditions[Op.or] = [
+        { "$office.name$": { [Op.iLike]: `%${search}%` } },
         { plateNumber: { [Op.iLike]: `%${search}%` } },
         { model: { [Op.iLike]: `%${search}%` } },
       ];
