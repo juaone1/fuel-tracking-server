@@ -835,7 +835,7 @@ const handleExportFuelRecord = async (req, res) => {
       return res.status(404).json({ error: "Office not found" });
     }
 
-    const records = await FuelConsumptionRecords.findAll({
+    const fuelRecords = await FuelConsumptionRecords.findAll({
       where: { year, month, officeId },
       attributes: {
         exclude: ["createdAt", "updatedAt", "deletedAt"],
@@ -848,6 +848,22 @@ const handleExportFuelRecord = async (req, res) => {
         },
       ],
     });
+
+    const subsidyRecords = await SubsidyRecords.findAll({
+      where: { year, month, officeId },
+      attributes: {
+        exclude: ["createdAt", "updatedAt", "deletedAt"],
+      },
+      include: [
+        {
+          model: Vehicles,
+          as: "vehicle",
+          attributes: ["model", "plateNumber", "fuelTypeId"],
+        },
+      ],
+    });
+
+    const records = [...fuelRecords, ...subsidyRecords];
 
     const invalidRecords = records.filter(
       (record) => !record.fileId || !record.litersConsumed || !record.totalCost
@@ -1350,9 +1366,11 @@ const handleGetAllSubsidyRecords = async (req, res) => {
       ).toFixed(2);
       return {
         ...record.dataValues,
-        plateNumber: record.vehicle.plateNumber,
-        office: record.office.name,
-        requestingOffice: record.requestingOffice.name,
+        plateNumber: record.vehicle ? record.vehicle.plateNumber : null,
+        office: record.office ? record.office.name : null,
+        requestingOffice: record.requestingOffice
+          ? record.requestingOffice.name
+          : null,
         costPerLiter,
         distanceTravelled,
         fuelEfficiency,
@@ -1365,6 +1383,62 @@ const handleGetAllSubsidyRecords = async (req, res) => {
       currentPage: parseInt(page, 10),
       data: recordsWithComputations,
     });
+  } catch (error) {
+    res.status(500).json({ error: "server error", message: error.message });
+  }
+};
+
+const handleUpdateSubsidyRecord = async (req, res) => {
+  const { vehicleId, month, year } = req.query;
+  const updateData = req.body;
+  const file = req.file;
+
+  if (Object.keys(updateData).length === 0) {
+    return res
+      .status(400)
+      .json({ error: "At least one field is required to update the record" });
+  }
+  try {
+    const record = await SubsidyRecords.findOne({
+      where: { vehicleId: vehicleId, month: month, year: year },
+    });
+
+    if (!record) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+
+    if (file) {
+      const newFile = await Files.create({
+        fileName: file.originalname,
+        fileUrl: file.location,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      updateData.fileId = newFile.id;
+    }
+
+    console.log("updateData", updateData);
+    const updatedRecord = await record.update(updateData);
+    res
+      .status(200)
+      .json({ message: "Record updated successfully", data: updatedRecord });
+  } catch (error) {
+    res.status(500).json({ error: "server error", message: error.message });
+  }
+};
+
+const handleSoftDeleteSubsidyRecord = async (req, res) => {
+  const { recordId } = req.params;
+  try {
+    const result = await SubsidyRecords.destroy({
+      where: { id: recordId },
+    });
+
+    if (result === 0) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+    res.send({ message: "Record deleted successfully." });
   } catch (error) {
     res.status(500).json({ error: "server error", message: error.message });
   }
@@ -1384,4 +1458,6 @@ module.exports = {
   handleExportFuelRecord,
   handleCreateSubsidyRecord,
   handleGetAllSubsidyRecords,
+  handleUpdateSubsidyRecord,
+  handleSoftDeleteSubsidyRecord,
 };
