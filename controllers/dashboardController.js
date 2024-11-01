@@ -1,4 +1,5 @@
 const FuelConsumptionRecords = require("../db/models/fuelconsumptionrecords");
+const SubsidyRecords = require("../db/models/subsidyRecords");
 const Vehicles = require("../db/models/vehicles");
 const sequelize = require("sequelize");
 
@@ -37,6 +38,23 @@ const handleGetTotalSpentFuel = async (req, res) => {
       order: [[sequelize.col("month"), "ASC"]],
     });
 
+    const totalSpentSubsidy = await SubsidyRecords.findAll({
+      attributes: [
+        [sequelize.fn("sum", sequelize.col("totalCost")), "totalSpentFuel"],
+        "month",
+      ],
+      include: [
+        {
+          model: Vehicles,
+          as: "vehicle",
+          attributes: [],
+        },
+      ],
+      where: whereConditions,
+      group: ["month", "vehicle.id"],
+      order: [[sequelize.col("month"), "ASC"]],
+    });
+
     const months = [
       "January",
       "February",
@@ -54,6 +72,16 @@ const handleGetTotalSpentFuel = async (req, res) => {
 
     const monthData = Array(12).fill(0);
     totalSpentFuel.forEach((record) => {
+      const monthIndex = months.indexOf(record.dataValues.month);
+      if (monthIndex !== -1) {
+        let totalSpent = parseFloat(record.dataValues.totalSpentFuel);
+        if (!isNaN(totalSpent)) {
+          monthData[monthIndex] += totalSpent;
+        }
+      }
+    });
+
+    totalSpentSubsidy.forEach((record) => {
       const monthIndex = months.indexOf(record.dataValues.month);
       if (monthIndex !== -1) {
         let totalSpent = parseFloat(record.dataValues.totalSpentFuel);
@@ -157,9 +185,44 @@ const handleGetTotalLitersConsumed = async (req, res) => {
           order: [[sequelize.col("month"), "ASC"]],
         });
 
+        const totalLitersSubsidy = await SubsidyRecords.findAll({
+          attributes: [
+            [
+              sequelize.fn("sum", sequelize.col("litersConsumed")),
+              "litersConsumed",
+            ],
+            "month",
+          ],
+          include: [
+            {
+              model: Vehicles,
+              as: "vehicle",
+              attributes: [],
+            },
+          ],
+          where: fuelWhereConditions,
+          group: ["month", "vehicle.id"],
+          order: [[sequelize.col("month"), "ASC"]],
+        });
+
         const monthData = Array(12).fill(0);
         let totalLitersConsumed = 0;
         totalLiters.forEach((record) => {
+          const monthIndex = months.indexOf(record.dataValues.month);
+          if (monthIndex !== -1) {
+            let liters = parseFloat(record.dataValues.litersConsumed);
+            if (!isNaN(liters)) {
+              liters = parseFloat(liters.toFixed(2));
+              monthData[monthIndex] += liters;
+              monthData[monthIndex] = parseFloat(
+                monthData[monthIndex].toFixed(2)
+              );
+              totalLitersConsumed += liters;
+            }
+          }
+        });
+
+        totalLitersSubsidy.forEach((record) => {
           const monthIndex = months.indexOf(record.dataValues.month);
           if (monthIndex !== -1) {
             let liters = parseFloat(record.dataValues.litersConsumed);
