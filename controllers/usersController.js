@@ -116,4 +116,83 @@ const handleChangePassword = async (req, res) => {
   }
 };
 
-module.exports = { getAllUsers, handleUpdateUser, handleChangePassword };
+const handleUpdateUserAdmin = async (req, res) => {
+  const {
+    id,
+    email,
+    firstName,
+    lastName,
+    username,
+    password,
+    adminPassword,
+    officeId,
+    roleId,
+  } = req.body;
+  try {
+    const user = await Users.findByPk(id);
+    console.log("user found", user);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    if (password) {
+      // check if admin password is correct
+      const admin = await Users.findByPk(req.id);
+      const validPassword = await bcrypt.compare(adminPassword, admin.password);
+      if (!validPassword) {
+        return res.status(401).json({ error: "Invalid admin password" });
+      }
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await user.update({
+        email,
+        firstName,
+        lastName,
+        userName: username,
+        password: hashedPassword,
+        officeId,
+        roleId,
+      });
+    } else {
+      await user.update({
+        email,
+        firstName,
+        lastName,
+        userName: username,
+        officeId,
+        roleId,
+      });
+    }
+    return res.status(200).json({ message: "User updated successfully" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "server error", message: error.message });
+  }
+};
+
+const handleSoftDeleteUser = async (req, res) => {
+  const userId = req.id;
+  const { id } = req.params;
+  try {
+    const user = await Users.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    if (user.id === userId) {
+      return res.status(403).json({ error: "You cannot delete yourself" });
+    }
+    await user.destroy();
+    return res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "server error", message: error.message });
+  }
+};
+
+module.exports = {
+  getAllUsers,
+  handleUpdateUser,
+  handleChangePassword,
+  handleUpdateUserAdmin,
+  handleSoftDeleteUser,
+};
