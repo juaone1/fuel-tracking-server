@@ -1,9 +1,26 @@
+const { Sequelize, Op } = require("sequelize");
 const bcrypt = require("bcrypt");
 const Users = require("../db/models/users");
 const Offices = require("../db/models/offices");
 
 const getAllUsers = async (req, res) => {
-  const users = await Users.findAll({
+  try {
+    const { page = 1, limit = 10, search = "" } = req.query;
+
+    const offset = (page - 1) * limit;
+
+    const whereClause = {};
+    if (search) {
+      whereClause[Op.or] = [
+        { userName: { [Op.iLike]: `%${search}%` } },
+        { firstName: { [Op.iLike]: `%${search}%` } },
+        { lastName: { [Op.iLike]: `%${search}%` } },
+        { email: { [Op.iLike]: `%${search}%` } },
+        { "$office.name$": { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    const { count, rows: users } = await Users.findAndCountAll({
     attributes: {
       exclude: ["refreshToken", "deletedAt"],
     },
@@ -14,11 +31,16 @@ const getAllUsers = async (req, res) => {
         attributes: ["name"],
       },
     ],
+      where: whereClause,
+      order: [["updatedAt", "DESC"]],
+      limit,
+      offset,
   });
-  if (!users) {
+
+    if (!users || users.length === 0) {
     return res.status(404).json({ error: "Users not found" });
   }
-  console.log("users", users);
+
   const transformedUsers = users.map((user) => {
     const userJSON = user.toJSON();
     const createdAt = new Date(userJSON.createdAt)
@@ -44,9 +66,17 @@ const getAllUsers = async (req, res) => {
       updatedAt,
     };
   });
-  return res.status(200).json(transformedUsers);
-};
 
+    return res.status(200).json({
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: parseInt(page, 10),
+      data: transformedUsers,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "server error", message: error.message });
+  }
+};
 const handleUpdateUser = async (req, res) => {
   const userId = req.id;
   const { email, firstName, lastName, userName } = req.body;
