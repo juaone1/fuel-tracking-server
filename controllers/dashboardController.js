@@ -1,5 +1,5 @@
 const FuelConsumptionRecords = require("../db/models/fuelconsumptionrecords");
-const SubsidyRecords = require("../db/models/subsidyRecords");
+const SubsidyRecords = require("../db/models/subsidyrecords");
 const Vehicles = require("../db/models/vehicles");
 const sequelize = require("sequelize");
 

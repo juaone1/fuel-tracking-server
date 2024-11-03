@@ -5,7 +5,7 @@ const VehicleStatus = require("./vehiclestatus");
 const Office = require("./offices");
 const Users = require("./users");
 const FuelConsumptionRecords = require("./fuelconsumptionrecords");
-const SubsidyRecords = require("./subsidyRecords");
+const SubsidyRecords = require("./subsidyrecords");
 
 const setupModelAssociations = () => {
   // Define associations
