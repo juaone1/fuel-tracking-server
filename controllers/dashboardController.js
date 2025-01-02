@@ -7,7 +7,8 @@ const handleGetTotalSpentFuel = async (req, res) => {
   const { fuelType } = req.query;
   const role = req.role;
   const officeId = req.officeId;
-  const currentYear = new Date().getFullYear();
+  // const currentYear = new Date().getFullYear();
+  const currentYear = 2024;
 
   try {
     const whereConditions = {
@@ -128,7 +129,8 @@ const handleGetTotalSpentFuel = async (req, res) => {
 const handleGetTotalLitersConsumed = async (req, res) => {
   const role = req.role;
   const officeId = req.officeId;
-  const currentYear = new Date().getFullYear();
+  // const currentYear = new Date().getFullYear();
+  const currentYear = 2024;
 
   try {
     const whereConditions = {
