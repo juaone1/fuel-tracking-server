@@ -488,27 +488,28 @@ const handleGetVehicleListWithStatus = async (req, res) => {
 
 const handleDownloadSampleFormat = async (req, res) => {
   const role = req.role;
-  const officeId = req.query.officeId;
+  // const officeId = req.query.officeId;
+  const officeId = req.officeId;
   const filePath = path.join(__dirname, "FuelRecordTemplate.xlsx");
 
-  // const offices =
-  //   role !== 2
-  //     ? await Office.findOne({ where: { id: officeId } })
-  //     : await Office.findAll({ attributes: ["name"] });
+  const offices =
+    role !== 2
+      ? await Office.findOne({ where: { id: officeId } })
+      : await Office.findAll({ attributes: ["name"] });
 
-  const offices = await Office.findOne({ where: { id: officeId } });
+  // const offices = await Office.findOne({ where: { id: officeId } });
 
-  // const plateNumbers =
-  //   role !== 2
-  //     ? await Vehicles.findAll({
-  //         where: { officeId: officeId },
-  //         attributes: ["plateNumber", "id"],
-  //       })
-  //     : await Vehicles.findAll({ attributes: ["plateNumber", "id"] });
-  const plateNumbers = await Vehicles.findAll({
-    where: { officeId: officeId },
-    attributes: ["plateNumber", "id"],
-  });
+  const plateNumbers =
+    role !== 2
+      ? await Vehicles.findAll({
+          where: { officeId: officeId },
+          attributes: ["plateNumber", "id"],
+        })
+      : await Vehicles.findAll({ attributes: ["plateNumber", "id"] });
+  // const plateNumbers = await Vehicles.findAll({
+  //   where: { officeId: officeId },
+  //   attributes: ["plateNumber", "id"],
+  // });
   let officeNames;
   if (Array.isArray(offices)) {
     officeNames = offices.map((o) => o.name);
