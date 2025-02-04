@@ -368,10 +368,10 @@ const handleGetVehicleListWithStatus = async (req, res) => {
   // const role = req.role;
   // const officeId = req.officeId;
   const { officeId, page = 1, limit = 10, search = "" } = req.query;
-  // const currentYear = new Date().getFullYear();
-  const currentYear = 2024;
-  // const currentMonth = new Date().getMonth();
-  const currentMonth = 11;
+  const currentYear = new Date().getFullYear();
+  // const currentYear = 2024;
+  const currentMonth = new Date().getMonth();
+  // const currentMonth = 11;
   try {
     const offset = (page - 1) * limit;
     const whereConditions = officeId ? { officeId } : {};
