@@ -55,6 +55,7 @@ app.use(
   require("./routes/fuelConsumptionRecords")
 );
 app.use("/dashboard", require("./routes/dashboard"));
+app.use("/monitoring", require("./routes/monitoring"));
 
 app.use("*", (req, res) => {
   res.status(404).send({ message: "Not Found" });
